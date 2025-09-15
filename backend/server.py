@@ -174,19 +174,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
     return encoded_jwt
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=["HS256"])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-        user = await db.users.find_one({"id": user_id})
-        if user is None:
-            raise HTTPException(status_code=401, detail="User not found")
-        return User(**user)
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-
 async def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False))):
     """Get current user if token is provided, otherwise return None"""
     if not credentials:
@@ -202,6 +189,19 @@ async def get_current_user_optional(credentials: HTTPAuthorizationCredentials = 
         return User(**user)
     except jwt.PyJWTError:
         return None
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=["HS256"])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        user = await db.users.find_one({"id": user_id})
+        if user is None:
+            raise HTTPException(status_code=401, detail="User not found")
+        return User(**user)
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
 # Authentication Routes
 @api_router.post("/auth/register")
