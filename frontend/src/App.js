@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ValueNumberCalculator from "./components/ValueNumberCalculator";
-import PasscodeModal from "./components/PasscodeModal";
+import InvitationLandingPage from "./components/InvitationLandingPage";
 import AuthModal from "./components/AuthModal";
 import UserProfile from "./components/UserProfile";
 import axios from "axios";
@@ -12,7 +12,6 @@ const API = `${BACKEND_URL}/api`;
 
 const Home = () => {
   const [hasAccess, setHasAccess] = useState(false);
-  const [showPasscodeModal, setShowPasscodeModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [user, setUser] = useState(null);
   const [authMode, setAuthMode] = useState('guest'); // 'guest', 'authenticated'
@@ -40,10 +39,8 @@ const Home = () => {
       // Guest access with passcode
       setAuthMode('guest');
       setHasAccess(true);
-    } else {
-      // No access, show passcode modal
-      setShowPasscodeModal(true);
     }
+    // If no access, show invitation landing page (default state)
   }, []);
 
   const verifyToken = async (token) => {
@@ -55,7 +52,6 @@ const Home = () => {
     } catch (error) {
       // Token is invalid, clear auth
       clearAuth();
-      setShowPasscodeModal(true);
     }
   };
 
@@ -68,9 +64,8 @@ const Home = () => {
     setHasAccess(false);
   };
 
-  const handlePasscodeSuccess = () => {
+  const handleInvitationSuccess = () => {
     setHasAccess(true);
-    setShowPasscodeModal(false);
     setAuthMode('guest');
   };
 
@@ -79,12 +74,10 @@ const Home = () => {
     setAuthMode('authenticated');
     setHasAccess(true);
     setShowAuthModal(false);
-    setShowPasscodeModal(false);
   };
 
   const handleLogout = () => {
     clearAuth();
-    setShowPasscodeModal(true);
   };
 
   const handleUpgradeAccount = () => {
@@ -94,60 +87,15 @@ const Home = () => {
   if (!hasAccess) {
     return (
       <div>
-        <PasscodeModal
-          isOpen={showPasscodeModal}
-          onClose={() => setShowPasscodeModal(false)}
-          onSuccess={handlePasscodeSuccess}
+        <InvitationLandingPage 
+          onSuccess={handleInvitationSuccess}
+          onShowAuth={() => setShowAuthModal(true)}
         />
         <AuthModal
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
           onAuthSuccess={handleAuthSuccess}
         />
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-          <div className="text-center p-8">
-            <div className="mb-8">
-              {/* 3D Rotating Cube Logo */}
-              <div className="cube-container mb-4">
-                <div className="cube">
-                  <div className="face front">VN</div>
-                  <div className="face back">VN</div>
-                  <div className="face right">VN</div>
-                  <div className="face left">VN</div>
-                  <div className="face top">VN</div>
-                  <div className="face bottom">VN</div>
-                </div>
-              </div>
-              
-              {/* SCI Branding */}
-              <div className="mb-4">
-                <div className="inline-block bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
-                  SCI™ POWERED by Emergent Solutions
-                </div>
-              </div>
-              
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">Value Number™</h1>
-              <p className="text-xl text-gray-600 mb-4">Invitation Only</p>
-              <p className="text-sm text-gray-500 max-w-md mx-auto">
-                Welcome to the platform designed to solve the <strong>$7.3 trillion problem</strong> of poor decision-making.
-              </p>
-            </div>
-            <div className="space-y-3">
-              <button
-                onClick={() => setShowPasscodeModal(true)}
-                className="block w-full bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                Enter Access Code
-              </button>
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="block w-full border border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors"
-              >
-                Sign In / Register
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     );
   }

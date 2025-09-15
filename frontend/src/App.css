@@ -24,7 +24,142 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* 3D Rotating Cube Logo */
+/* Animated SCI™ Banner */
+.sci-banner-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.sci-banner {
+  background: linear-gradient(90deg, #10b981, #059669, #047857, #059669, #10b981);
+  background-size: 200% 100%;
+  animation: sciGlow 3s ease-in-out infinite;
+  padding: 8px 24px;
+  border-radius: 50px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sci-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: sciShine 2s linear infinite;
+}
+
+.sci-text {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes sciGlow {
+  0%, 100% {
+    background-position: 0% 50%;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    background-position: 100% 50%;
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.8);
+  }
+}
+
+@keyframes sciShine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* 3D Rotating Cube for Landing Page */
+.cube-container-landing {
+  perspective: 300px;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+}
+
+.cube-landing {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  transform-style: preserve-3d;
+  animation: rotateCubeLanding 12s infinite linear;
+}
+
+.face-landing {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%);
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 
+    inset 0 0 30px rgba(255, 255, 255, 0.1),
+    0 10px 20px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.face-landing.front {
+  transform: rotateY(0deg) translateZ(60px);
+}
+
+.face-landing.back {
+  transform: rotateY(180deg) translateZ(60px);
+}
+
+.face-landing.right {
+  transform: rotateY(90deg) translateZ(60px);
+}
+
+.face-landing.left {
+  transform: rotateY(-90deg) translateZ(60px);
+}
+
+.face-landing.top {
+  transform: rotateX(90deg) translateZ(60px);
+}
+
+.face-landing.bottom {
+  transform: rotateX(-90deg) translateZ(60px);
+}
+
+@keyframes rotateCubeLanding {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: rotateX(90deg) rotateY(90deg);
+  }
+  50% {
+    transform: rotateX(180deg) rotateY(180deg);
+  }
+  75% {
+    transform: rotateX(270deg) rotateY(270deg);
+  }
+  100% {
+    transform: rotateX(360deg) rotateY(360deg);
+  }
+}
+
+/* Original 3D Rotating Cube Logo for Modal */
 .cube-container {
   perspective: 200px;
   width: 80px;
@@ -99,7 +234,8 @@
 }
 
 /* Cube hover effect */
-.cube:hover {
+.cube:hover,
+.cube-landing:hover {
   animation-play-state: paused;
 }
 
@@ -170,6 +306,49 @@
   
   .face.bottom {
     transform: rotateX(-90deg) translateZ(30px);
+  }
+
+  .cube-container-landing {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .cube-landing {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .face-landing {
+    width: 100px;
+    height: 100px;
+    font-size: 28px;
+  }
+  
+  .face-landing.front,
+  .face-landing.back,
+  .face-landing.right,
+  .face-landing.left {
+    transform: rotateY(0deg) translateZ(50px);
+  }
+  
+  .face-landing.back {
+    transform: rotateY(180deg) translateZ(50px);
+  }
+  
+  .face-landing.right {
+    transform: rotateY(90deg) translateZ(50px);
+  }
+  
+  .face-landing.left {
+    transform: rotateY(-90deg) translateZ(50px);
+  }
+  
+  .face-landing.top {
+    transform: rotateX(90deg) translateZ(50px);
+  }
+  
+  .face-landing.bottom {
+    transform: rotateX(-90deg) translateZ(50px);
   }
 }
 
