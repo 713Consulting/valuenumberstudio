@@ -467,7 +467,7 @@ async def request_invitation(request: InvitationRequest):
     return {"message": "Invitation request submitted successfully. You will be contacted soon."}
 
 @api_router.post("/verify-passcode")
-async def verify_passcode(passcode: str):
+async def verify_passcode(passcode: str = Query(...)):
     """Verify invitation passcode"""
     valid_codes = ["VN-2025-GO"]  # Can be expanded or stored in database
     
