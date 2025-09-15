@@ -155,7 +155,7 @@ const ResultCard = ({ result, onClear }) => {
   );
 };
 
-const ValueNumberCalculator = () => {
+const ValueNumberCalculator = ({ user }) => {
   const [activeTab, setActiveTab] = useState('s_formula');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -178,6 +178,11 @@ const ValueNumberCalculator = () => {
     old_cost: 0,
     new_cost: 0
   });
+
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('valueNumberToken');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
 
   const validateInputs = (inputs, formula) => {
     if (inputs.old_time.hours === 0 && inputs.old_time.minutes === 0) {
@@ -202,7 +207,9 @@ const ValueNumberCalculator = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.post(`${API}/calculate/s-formula`, sInputs);
+      const response = await axios.post(`${API}/calculate/s-formula`, sInputs, {
+        headers: getAuthHeaders()
+      });
       setResult(response.data);
     } catch (err) {
       setError(err.response?.data?.detail || 'Calculation failed. Please try again.');
@@ -221,7 +228,9 @@ const ValueNumberCalculator = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.post(`${API}/calculate/w-formula`, wInputs);
+      const response = await axios.post(`${API}/calculate/w-formula`, wInputs, {
+        headers: getAuthHeaders()
+      });
       setResult(response.data);
     } catch (err) {
       setError(err.response?.data?.detail || 'Calculation failed. Please try again.');
@@ -244,6 +253,11 @@ const ValueNumberCalculator = () => {
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Value Number™ Calculator</h1>
         <p className="text-gray-600">Mathematical certainty in every decision</p>
+        {user && (
+          <div className="mt-2 text-sm text-blue-600">
+            Welcome back, {user.email} • Your calculations are being saved
+          </div>
+        )}
       </div>
 
       {/* Tab Navigation */}
