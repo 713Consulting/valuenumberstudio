@@ -297,7 +297,7 @@ async def root():
 @api_router.post("/calculate/s-formula", response_model=CalculationResult)
 async def calculate_s_formula_endpoint(
     inputs: SFormulaInput,
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_user)
 ):
     """Calculate S Formula (efficiency without cost bias)"""
     try:
@@ -305,7 +305,7 @@ async def calculate_s_formula_endpoint(
         recommendation, explanation = get_recommendation(value_number, CalculationType.S_FORMULA)
         
         result = CalculationResult(
-            user_id=current_user.id if current_user else None,
+            user_id=current_user.id,
             calculation_type=CalculationType.S_FORMULA,
             inputs=inputs.dict(),
             value_number=value_number,
