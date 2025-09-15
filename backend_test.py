@@ -87,9 +87,8 @@ class ValueNumberAPITester:
         success2, response2 = self.run_test(
             "Invalid Passcode Verification",
             "POST",
-            "verify-passcode",
-            200,
-            data="INVALID-CODE"
+            "verify-passcode?passcode=INVALID-CODE",
+            200
         )
         
         if success2 and not response2.get('valid'):
