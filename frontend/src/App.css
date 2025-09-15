@@ -24,6 +24,85 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+/* 3D Rotating Cube Logo */
+.cube-container {
+  perspective: 200px;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+}
+
+.cube {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  transform-style: preserve-3d;
+  animation: rotateCube 8s infinite linear;
+}
+
+.face {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.face.front {
+  transform: rotateY(0deg) translateZ(40px);
+}
+
+.face.back {
+  transform: rotateY(180deg) translateZ(40px);
+}
+
+.face.right {
+  transform: rotateY(90deg) translateZ(40px);
+}
+
+.face.left {
+  transform: rotateY(-90deg) translateZ(40px);
+}
+
+.face.top {
+  transform: rotateX(90deg) translateZ(40px);
+}
+
+.face.bottom {
+  transform: rotateX(-90deg) translateZ(40px);
+}
+
+@keyframes rotateCube {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg);
+  }
+  25% {
+    transform: rotateX(90deg) rotateY(90deg);
+  }
+  50% {
+    transform: rotateX(180deg) rotateY(180deg);
+  }
+  75% {
+    transform: rotateX(270deg) rotateY(270deg);
+  }
+  100% {
+    transform: rotateX(360deg) rotateY(360deg);
+  }
+}
+
+/* Cube hover effect */
+.cube:hover {
+  animation-play-state: paused;
+}
+
 /* Custom animations */
 @keyframes pulse {
   0%, 100% {
@@ -48,6 +127,49 @@
   .slider::-moz-range-thumb {
     width: 24px;
     height: 24px;
+  }
+  
+  .cube-container {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .cube {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .face {
+    width: 60px;
+    height: 60px;
+    font-size: 18px;
+  }
+  
+  .face.front,
+  .face.back,
+  .face.right,
+  .face.left {
+    transform: rotateY(0deg) translateZ(30px);
+  }
+  
+  .face.back {
+    transform: rotateY(180deg) translateZ(30px);
+  }
+  
+  .face.right {
+    transform: rotateY(90deg) translateZ(30px);
+  }
+  
+  .face.left {
+    transform: rotateY(-90deg) translateZ(30px);
+  }
+  
+  .face.top {
+    transform: rotateX(90deg) translateZ(30px);
+  }
+  
+  .face.bottom {
+    transform: rotateX(-90deg) translateZ(30px);
   }
 }
 
