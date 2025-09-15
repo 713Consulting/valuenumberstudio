@@ -33,7 +33,6 @@ const PasscodeModal = ({ isOpen, onClose, onSuccess }) => {
   };
 
   const handleRequestInvitation = () => {
-    // This could open another modal or redirect to a form
     window.open('mailto:713consulting@gmail.com?subject=Value%20Number%20Invitation%20Request&body=Hello%20Keith,%0D%0A%0D%0AI%20would%20like%20to%20request%20an%20invitation%20code%20for%20Value%20Number.%0D%0A%0D%0AName:%0D%0AOrganization:%0D%0AReason%20for%20interest:%0D%0A%0D%0AThank%20you!', '_blank');
   };
 
@@ -50,6 +49,19 @@ const PasscodeModal = ({ isOpen, onClose, onSuccess }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
         <div className="text-center mb-6">
+          {/* Animated SCI™ Banner */}
+          <div className="mb-4 flex justify-center">
+            <div className="sci-badge">
+              <div className="atom-icon">
+                <div className="atom-nucleus"></div>
+                <div className="atom-orbit"><div className="atom-electron"></div></div>
+                <div className="atom-orbit"><div className="atom-electron"></div></div>
+                <div className="atom-orbit"><div className="atom-electron"></div></div>
+              </div>
+              <span>SCI™ POWERED by Emergent Solutions</span>
+            </div>
+          </div>
+          
           {/* 3D Rotating Cube Logo */}
           <div className="mx-auto mb-4 flex items-center justify-center">
             <div className="cube-container">
@@ -64,17 +76,10 @@ const PasscodeModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           </div>
           
-          {/* SCI Branding */}
-          <div className="mb-4">
-            <div className="inline-block bg-green-500 text-white px-4 py-1 rounded-full text-sm font-medium mb-2">
-              SCI™ POWERED by Emergent Solutions
-            </div>
-          </div>
-          
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Value Number™</h3>
           <p className="text-sm text-gray-600">
             Welcome to the platform designed to solve the <strong>$7.3 trillion problem</strong> of poor decision-making. 
-            This is the <strong>.SCI Standard</strong>—where every calculation is trusted, traceable, and built with integrity.
+            This is the <strong>SCI™ Standard</strong>—where every calculation is trusted, traceable, and built with integrity.
           </p>
         </div>
 
