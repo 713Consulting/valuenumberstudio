@@ -325,7 +325,7 @@ async def calculate_s_formula_endpoint(
 @api_router.post("/calculate/w-formula", response_model=CalculationResult)
 async def calculate_w_formula_endpoint(
     inputs: WFormulaInput,
-    current_user: Optional[User] = Depends(lambda: None)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
     """Calculate W Formula (includes financial factors)"""
     try:
