@@ -127,9 +127,13 @@ const ModernCalculatorInterface = ({ user }) => {
           </div>
 
           <div className="text-center">
-            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent mb-6">
-              Mathematical Certainty in Every Decision
+            {/* Updated Hero Text - Two Lines */}
+            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent mb-2">
+              Mathematical Certainty
             </h1>
+            <h2 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent mb-8">
+              in Every Decision
+            </h2>
             <p className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto mb-12">
               From multi-million dollar corporate investments to life-changing personal choices, get your <span className="text-purple-400 font-semibold">Value Number™</span> and decide with confidence.
             </p>
@@ -148,8 +152,8 @@ const ModernCalculatorInterface = ({ user }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* S Formula Card */}
           <div className={`relative group transition-all duration-500 ${activeFormula === 's' ? 'scale-105 z-10' : 'scale-100'}`}>
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-xl opacity-25 group-hover:opacity-40 transition-opacity duration-500"></div>
-            <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 hover:bg-white/15 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-pink-600/20 rounded-2xl blur-xl opacity-25 group-hover:opacity-40 transition-opacity duration-500"></div>
+            <div className="relative bg-gradient-to-br from-blue-600/10 via-purple-600/10 to-pink-600/10 backdrop-blur-xl rounded-2xl p-8 hover:from-blue-600/15 hover:via-purple-600/15 hover:to-pink-600/15 transition-all duration-300">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-2">Without Cost</h2>
@@ -313,8 +317,8 @@ const ModernCalculatorInterface = ({ user }) => {
 
           {/* W Formula Card */}
           <div className={`relative group transition-all duration-500 ${activeFormula === 'w' ? 'scale-105 z-10' : 'scale-100'}`}>
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-xl opacity-25 group-hover:opacity-40 transition-opacity duration-500"></div>
-            <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 hover:bg-white/15 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-pink-600/20 to-blue-600/20 rounded-2xl blur-xl opacity-25 group-hover:opacity-40 transition-opacity duration-500"></div>
+            <div className="relative bg-gradient-to-br from-purple-600/10 via-pink-600/10 to-blue-600/10 backdrop-blur-xl rounded-2xl p-8 hover:from-purple-600/15 hover:via-pink-600/15 hover:to-blue-600/15 transition-all duration-300">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-bold text-white mb-2">With Cost</h2>
@@ -495,6 +499,228 @@ const ModernCalculatorInterface = ({ user }) => {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Support the Mission Section */}
+      <div className="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 backdrop-blur-xl py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="mb-8">
+            <div className="cube-container-landing mx-auto mb-6">
+              <div className="cube-landing">
+                <div className="face-landing front">VN</div>
+                <div className="face-landing back">VN</div>
+                <div className="face-landing right">VN</div>
+                <div className="face-landing left">VN</div>
+                <div className="face-landing top">VN</div>
+                <div className="face-landing bottom">VN</div>
+              </div>
+            </div>
+          </div>
+          
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-6">
+            Support the Mission
+          </h2>
+          
+          <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
+            Your support helps us solve the $7.3 trillion problem of poor decision-making and bring mathematical certainty to the world.
+          </p>
+
+          <div className="bg-gradient-to-br from-purple-800/30 to-indigo-800/30 backdrop-blur-xl rounded-2xl p-8 mb-8">
+            <div className="flex items-center justify-center mb-6">
+              <svg className="w-8 h-8 text-pink-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <h3 className="text-2xl font-bold text-white">Request an Invitation</h3>
+            </div>
+            
+            <p className="text-gray-300 mb-6">
+              Value Number™ is currently in private beta. To get access, please send an email with your name, organization, and reason for interest.
+            </p>
+            
+            <button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-8 rounded-xl transition-all duration-300 transform hover:scale-105">
+              Request Access via Email
+            </button>
+          </div>
+
+          <div className="bg-gradient-to-br from-pink-800/30 to-purple-800/30 backdrop-blur-xl rounded-2xl p-8">
+            <div className="flex items-center justify-center mb-6">
+              <svg className="w-8 h-8 text-pink-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              <h3 className="text-2xl font-bold text-white">Support the Initiative</h3>
+            </div>
+            
+            <p className="text-gray-300 mb-6">
+              You can support this initiative through several avenues: <strong>donations</strong>, which contribute to development and operational costs; <strong>investments</strong>, where you provide capital in exchange for equity; or a <strong>loan</strong>, offering a structured agreement with a clear repayment plan.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Testimonials Section */}
+      <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 backdrop-blur-xl py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-6">
+              Testimonials
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              See how different people use Value Number™ to bring clarity to complex decisions. These are realistic examples to demonstrate the power of the platform.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+            <div className="bg-gradient-to-br from-purple-800/30 to-blue-800/30 backdrop-blur-xl rounded-2xl p-6 border-l-4 border-purple-400">
+              <p className="text-gray-300 mb-6 italic">
+                "I needed to know if a $5,000 software investment was worth it. Value Number didn't just give me an answer, it gave me mathematical certainty. The VN was 1.37. We bought the software and have already seen a 40% increase in efficiency."
+              </p>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold">M</span>
+                </div>
+                <div>
+                  <p className="text-white font-semibold">Maria, Small Business Owner</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-pink-800/30 to-purple-800/30 backdrop-blur-xl rounded-2xl p-6 border-l-4 border-pink-400">
+              <p className="text-gray-300 mb-6 italic">
+                "As a student, every dollar counts. I used the calculator to see if a new $1,200 laptop was a smart buy. The VN was 0.92—a Caution result. It made me realize I could be just as productive using the campus labs for free. It saved me from a bad financial decision."
+              </p>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold">D</span>
+                </div>
+                <div>
+                  <p className="text-white font-semibold">David, College Student</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-800/30 to-indigo-800/30 backdrop-blur-xl rounded-2xl p-6 border-l-4 border-blue-400">
+              <p className="text-gray-300 mb-6 italic">
+                "Choosing a family car was overwhelming. I compared a $30k minivan to a $22k SUV. The minivan had a higher Value Number (1.8 vs 1.4) because of its better fuel efficiency and lower maintenance costs. It made the choice obvious and stress-free."
+              </p>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold">P</span>
+                </div>
+                <div>
+                  <p className="text-white font-semibold">Priya, Busy Parent</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-gradient-to-br from-green-800/30 to-purple-800/30 backdrop-blur-xl rounded-2xl p-6 border-l-4 border-green-400">
+              <p className="text-gray-300 mb-6 italic">
+                "I've seen hundreds of pitch decks. The Value Number executive letter was different. It was clear, data-driven, and the only one that quantified its own value proposition. The SCI™ Standard is a powerful concept for ensuring integrity in business."
+              </p>
+              <div className="flex items-center">
+                <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold">C</span>
+                </div>
+                <div>
+                  <p className="text-white font-semibold">Mr. Chen, Investor</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Legal Section */}
+      <div className="bg-gradient-to-br from-slate-900/50 to-purple-900/50 backdrop-blur-xl py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-6">
+              Legal & Terms of Service
+            </h2>
+            <p className="text-gray-400 text-sm">Last Updated: August 19, 2025</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-yellow-900/20 to-orange-900/20 backdrop-blur-xl rounded-xl p-4 mb-8 border border-yellow-500/30">
+            <p className="text-yellow-200 text-sm">
+              <strong>Disclaimer:</strong> This document is for informational purposes only and does not constitute legal advice. Please consult with a legal professional for advice specific to your situation.
+            </p>
+          </div>
+
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold text-pink-400 mb-4">1. Introduction</h3>
+              <p className="text-gray-300 leading-relaxed">
+                Welcome to Value Number™ ("the Service"), owned and operated by 713 Consulting and Development ("the Company"). These Terms of Service ("Terms") govern your use of the ValueNumber.info website and the Value Number™ calculators (collectively, "the Service"). By accessing or using the Service, you agree to be bound by these Terms.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-pink-400 mb-4">2. Intellectual Property</h3>
+              <p className="text-gray-300 leading-relaxed">
+                The Service and its original content, including but not limited to the Value Number™ name, the SCI™ Standard, the S and W formulas, logos, features, and functionality, are and will remain the exclusive intellectual property of 713 Consulting and Development and its founder, Keith Bolden. The Service is protected by copyright, trademark, and other laws of both the United States and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of the Company.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-pink-400 mb-4">3. Use License</h3>
+              <p className="text-gray-300 leading-relaxed">
+                Permission is granted to temporarily download one copy of the materials on Value Number™'s website for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not: modify or copy the materials; use the materials for any commercial purpose or for any public display; attempt to reverse engineer any software contained on the website; or remove any copyright or other proprietary notations from the materials.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Privacy Policy Section */}
+      <div className="bg-gradient-to-br from-purple-900/50 to-slate-900/50 backdrop-blur-xl py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-6">
+              Privacy Policy
+            </h2>
+            <p className="text-gray-400 text-sm">Last Updated: August 19, 2025</p>
+          </div>
+
+          <div className="space-y-8">
+            <div>
+              <h3 className="text-2xl font-bold text-pink-400 mb-4">1. Introduction</h3>
+              <p className="text-gray-300 leading-relaxed">
+                713 Consulting and Development ("we", "us", or "our") operates the ValueNumber.info website (the "Service"). This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-pink-400 mb-4">2. Information Collection and Use</h3>
+              <p className="text-gray-300 leading-relaxed mb-4">
+                We collect several different types of information for various purposes to provide and improve our Service to you.
+              </p>
+              
+              <div className="space-y-4">
+                <div>
+                  <p className="text-white font-semibold mb-2">• Personal Data:</p>
+                  <p className="text-gray-300 leading-relaxed">
+                    While using our Service, such as when requesting an invitation, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you ("Personal Data"). This may include, but is not limited to, your email address, name, and reason for interest.
+                  </p>
+                </div>
+                
+                <div>
+                  <p className="text-white font-semibold mb-2">• Usage Data:</p>
+                  <p className="text-gray-300 leading-relaxed">
+                    We may also collect information on how the Service is accessed and used ("Usage Data"). This Usage Data is anonymized and may include information such as your computer's IP address, browser type, and the pages of our Service that you visit.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-2xl font-bold text-pink-400 mb-4">3. Use of Data</h3>
+              <p className="text-gray-300 leading-relaxed">
+                Value Number™ uses the collected data for various purposes: to provide and maintain our Service; to notify you about changes to our Service; to allow you to participate in interactive features when you choose to do so; to provide customer support; to gather analysis or valuable information so that we can improve our Service; and to monitor the usage of our Service.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

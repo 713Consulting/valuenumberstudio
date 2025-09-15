@@ -124,8 +124,8 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Modern Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-xl border-b border-white/10">
+      {/* Enhanced Header with Darker Background */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-purple-900/95 via-indigo-900/95 to-purple-900/95 backdrop-blur-xl border-b border-purple-500/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
@@ -134,7 +134,7 @@ const Home = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white">Value Number™</h1>
-                <p className="text-xs text-gray-300">SCI™ POWERED by Emergent Solutions</p>
+                <p className="text-xs text-gray-200">SCI™ POWERED by Emergent Solutions</p>
               </div>
             </div>
             
@@ -166,7 +166,7 @@ const Home = () => {
               ) : (
                 <button
                   onClick={handleLogout}
-                  className="text-gray-300 hover:text-white text-sm transition-colors"
+                  className="text-gray-200 hover:text-white text-sm transition-colors"
                 >
                   Sign Out
                 </button>
@@ -181,20 +181,20 @@ const Home = () => {
         <ModernCalculatorInterface user={user} />
       </main>
       
-      {/* Modern Footer */}
-      <footer className="bg-black/40 backdrop-blur-xl border-t border-white/10">
+      {/* Enhanced Footer with Darker Background */}
+      <footer className="bg-gradient-to-r from-purple-900/95 via-indigo-900/95 to-purple-900/95 backdrop-blur-xl border-t border-purple-500/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
-            <p className="text-lg text-gray-300 mb-2">
-              Solving the <span className="text-purple-400 font-semibold">$7.3 trillion problem</span> of poor decision-making
+            <p className="text-lg text-gray-200 mb-2">
+              Solving the <span className="text-purple-300 font-semibold">$7.3 trillion problem</span> of poor decision-making
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-300">
               713 Consulting and Development • Houston, TX
             </p>
             {authMode === 'guest' && (
               <div className="mt-6 max-w-md mx-auto">
                 <div className="bg-blue-500/20 border border-blue-500/30 rounded-xl p-4">
-                  <p className="text-sm text-blue-300">
+                  <p className="text-sm text-blue-200">
                     <strong>Guest Access:</strong> Create an account to save your calculations and access advanced features.
                   </p>
                 </div>
