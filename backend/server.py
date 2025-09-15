@@ -25,7 +25,7 @@ db = client[os.environ['DB_NAME']]
 # Security setup
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
-SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'value-number-secret-key-change-in-production-2025')
 
 # Create the main app without a prefix
 app = FastAPI(title="Value Number API", version="1.0.0")
@@ -113,6 +113,9 @@ class InvitationRequest(BaseModel):
     email: str
     organization: Optional[str] = None
     reason: str
+
+class UserRoleUpdate(BaseModel):
+    role: UserRole
 
 # Helper Functions
 def get_recommendation(value_number: float, calculation_type: CalculationType) -> tuple[RecommendationLevel, str]:
@@ -203,7 +206,11 @@ async def get_current_user_optional(credentials: HTTPAuthorizationCredentials = 
     except jwt.PyJWTError:
         return None
 
-
+async def get_admin_user(current_user: User = Depends(get_current_user)):
+    """Ensure current user is an admin"""
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
 
 # Authentication Routes
 @api_router.post("/auth/register")
@@ -290,6 +297,87 @@ async def login(user_credentials: UserLogin):
 async def get_current_user_profile(current_user: User = Depends(get_current_user)):
     """Get current user profile"""
     return current_user
+
+# Admin Routes
+@api_router.get("/admin/analytics")
+async def get_analytics(admin_user: User = Depends(get_admin_user)):
+    """Get system analytics"""
+    total_users = await db.users.count_documents({})
+    total_calculations = await db.calculations.count_documents({})
+    
+    # Today's calculations
+    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_calculations = await db.calculations.count_documents({
+        "timestamp": {"$gte": today}
+    })
+    
+    pending_invitations = await db.invitation_requests.count_documents({
+        "status": "pending"
+    })
+    
+    return {
+        "totalUsers": total_users,
+        "totalCalculations": total_calculations,
+        "todayCalculations": today_calculations,
+        "pendingInvitations": pending_invitations
+    }
+
+@api_router.get("/admin/users")
+async def get_all_users(admin_user: User = Depends(get_admin_user)):
+    """Get all users for admin management"""
+    users_cursor = db.users.find({}).sort("created_at", -1)
+    users = await users_cursor.to_list(length=100)
+    
+    return [User(**user) for user in users]
+
+@api_router.put("/admin/users/{user_id}/role")
+async def update_user_role(
+    user_id: str, 
+    role_update: UserRoleUpdate,
+    admin_user: User = Depends(get_admin_user)
+):
+    """Update user role"""
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"role": role_update.role.value}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User role updated successfully"}
+
+@api_router.get("/admin/calculations")
+async def get_all_calculations(admin_user: User = Depends(get_admin_user)):
+    """Get all calculations for admin analysis"""
+    calculations_cursor = db.calculations.find({}).sort("timestamp", -1)
+    calculations = await calculations_cursor.to_list(length=100)
+    
+    return [CalculationResult(**calc) for calc in calculations]
+
+@api_router.get("/admin/invitation-requests")
+async def get_invitation_requests(admin_user: User = Depends(get_admin_user)):
+    """Get all invitation requests"""
+    requests_cursor = db.invitation_requests.find({}).sort("requested_at", -1)
+    requests = await requests_cursor.to_list(length=50)
+    
+    return requests
+
+@api_router.post("/admin/invitation-requests/{request_id}/approve")
+async def approve_invitation_request(
+    request_id: str,
+    admin_user: User = Depends(get_admin_user)
+):
+    """Approve an invitation request"""
+    result = await db.invitation_requests.update_one(
+        {"id": request_id},
+        {"$set": {"status": "approved", "approved_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Invitation request not found")
+    
+    return {"message": "Invitation request approved"}
 
 # Routes
 @api_router.get("/")

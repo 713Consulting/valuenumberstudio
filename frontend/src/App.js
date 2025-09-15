@@ -5,6 +5,7 @@ import ValueNumberCalculator from "./components/ValueNumberCalculator";
 import InvitationLandingPage from "./components/InvitationLandingPage";
 import AuthModal from "./components/AuthModal";
 import UserProfile from "./components/UserProfile";
+import AdminDashboard from "./components/AdminDashboard";
 import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -13,6 +14,7 @@ const API = `${BACKEND_URL}/api`;
 const Home = () => {
   const [hasAccess, setHasAccess] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
   const [user, setUser] = useState(null);
   const [authMode, setAuthMode] = useState('guest'); // 'guest', 'authenticated'
 
@@ -78,10 +80,21 @@ const Home = () => {
 
   const handleLogout = () => {
     clearAuth();
+    setShowAdminDashboard(false);
   };
 
   const handleUpgradeAccount = () => {
     setShowAuthModal(true);
+  };
+
+  const handleAdminAccess = () => {
+    if (user?.role === 'admin') {
+      setShowAdminDashboard(true);
+    }
+  };
+
+  const handleBackFromAdmin = () => {
+    setShowAdminDashboard(false);
   };
 
   if (!hasAccess) {
@@ -97,6 +110,15 @@ const Home = () => {
           onAuthSuccess={handleAuthSuccess}
         />
       </div>
+    );
+  }
+
+  if (showAdminDashboard) {
+    return (
+      <AdminDashboard 
+        user={user}
+        onBack={handleBackFromAdmin}
+      />
     );
   }
 
@@ -116,6 +138,15 @@ const Home = () => {
             </div>
             
             <div className="flex items-center space-x-4">
+              {user?.role === 'admin' && (
+                <button
+                  onClick={handleAdminAccess}
+                  className="text-sm bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+                >
+                  Admin Dashboard
+                </button>
+              )}
+              
               {authMode === 'guest' && (
                 <button
                   onClick={handleUpgradeAccount}
