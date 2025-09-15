@@ -73,9 +73,8 @@ class ValueNumberAPITester:
         success, response = self.run_test(
             "Valid Passcode Verification",
             "POST",
-            "verify-passcode",
-            200,
-            data="VN-2025-GO"
+            "verify-passcode?passcode=VN-2025-GO",
+            200
         )
         
         if success and response.get('valid'):
