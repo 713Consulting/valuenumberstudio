@@ -37,9 +37,9 @@ const InvitationLandingPage = ({ onSuccess, onShowAuth }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-indigo-950 to-slate-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
-        {/* EXACT Animated SCI™ Banner with Rotating Atom */}
+        {/* EXACT Animated SCI™ Banner with Enhanced Effects */}
         <div className="mb-8 flex justify-center">
           <div className="sci-badge">
             <div className="atom-icon">
@@ -76,13 +76,12 @@ const InvitationLandingPage = ({ onSuccess, onShowAuth }) => {
           Invitation Only
         </h2>
 
-        {/* Description */}
-        <p className="text-gray-300 text-sm leading-relaxed mb-10 max-w-sm mx-auto">
-          Welcome to the platform designed to solve the{' '}
-          <span className="text-white font-semibold">$7.3 trillion problem</span>{' '}
-          of poor decision-making. This is the{' '}
-          <span className="text-white font-semibold">SCI™ Standard</span>—where every calculation is trusted, traceable, and built with integrity.
-        </p>
+        {/* Description - Reformatted to 3 Lines */}
+        <div className="text-gray-300 text-sm leading-relaxed mb-10 max-w-sm mx-auto">
+          <p className="mb-0">Welcome to the platform designed to solve the</p>
+          <p className="mb-0"><span className="text-white font-semibold">$7.3 trillion problem</span> of poor decision-making. This is the</p>
+          <p className="mb-0"><span className="text-white font-semibold">SCI™ Standard</span>—where every calculation is trusted, traceable, and built with integrity.</p>
+        </div>
 
         {/* Access Form */}
         <form onSubmit={handleSubmit} className="mb-8">
