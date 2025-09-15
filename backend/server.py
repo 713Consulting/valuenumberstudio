@@ -187,6 +187,92 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
+# Authentication Routes
+@api_router.post("/auth/register")
+async def register(user_data: UserCreate):
+    """Register a new user"""
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Verify invitation code if provided
+    role = UserRole.GUEST
+    if user_data.invitation_code:
+        if user_data.invitation_code == "VN-2025-GO":
+            role = UserRole.USER
+        elif user_data.invitation_code == "VN-EXEC-2025":
+            role = UserRole.EXECUTIVE
+        elif user_data.invitation_code == "VN-ADMIN-2025":
+            role = UserRole.ADMIN
+        else:
+            raise HTTPException(status_code=400, detail="Invalid invitation code")
+    
+    # Hash password
+    hashed_password = pwd_context.hash(user_data.password)
+    
+    # Create user
+    user = User(
+        email=user_data.email,
+        role=role,
+        created_at=datetime.utcnow()
+    )
+    
+    user_dict = user.dict()
+    user_dict["hashed_password"] = hashed_password
+    
+    await db.users.insert_one(user_dict)
+    
+    # Create access token
+    access_token_expires = timedelta(days=30)
+    access_token = create_access_token(
+        data={"sub": user.id}, expires_delta=access_token_expires
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user
+    }
+
+@api_router.post("/auth/login")
+async def login(user_credentials: UserLogin):
+    """Authenticate user and return token"""
+    user_data = await db.users.find_one({"email": user_credentials.email})
+    if not user_data:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    if not pwd_context.verify(user_credentials.password, user_data["hashed_password"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    if not user_data.get("is_active", True):
+        raise HTTPException(status_code=401, detail="Account is disabled")
+    
+    # Update last login
+    await db.users.update_one(
+        {"id": user_data["id"]},
+        {"$set": {"last_login": datetime.utcnow()}}
+    )
+    
+    # Create access token
+    access_token_expires = timedelta(days=30)
+    access_token = create_access_token(
+        data={"sub": user_data["id"]}, expires_delta=access_token_expires
+    )
+    
+    user = User(**user_data)
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": user
+    }
+
+@api_router.get("/auth/me", response_model=User)
+async def get_current_user_profile(current_user: User = Depends(get_current_user)):
+    """Get current user profile"""
+    return current_user
+
 # Routes
 @api_router.get("/")
 async def root():
