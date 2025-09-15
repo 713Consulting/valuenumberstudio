@@ -147,7 +147,7 @@ const Home = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Value Number™</h1>
-                <p className="text-xs text-gray-500">SCI POWERED by Mathematical Certainty</p>
+                <p className="text-xs text-gray-500">SCI™ POWERED by Emergent Solutions</p>
               </div>
             </div>
             
