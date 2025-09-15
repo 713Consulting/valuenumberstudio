@@ -187,21 +187,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
 
-async def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False))):
-    """Get current user if token is provided, otherwise return None"""
-    if not credentials:
-        return None
-    try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=["HS256"])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            return None
-        user = await db.users.find_one({"id": user_id})
-        if user is None:
-            return None
-        return User(**user)
-    except jwt.PyJWTError:
-        return None
+
 
 # Authentication Routes
 @api_router.post("/auth/register")
