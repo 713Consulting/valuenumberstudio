@@ -102,7 +102,64 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "FahTru Media section videos are not working - clicking on videos does nothing, no error messages visible"
+user_problem_statement: "Implement SCI™ branding implementation and Value Number™ calculator with AI insights using Emergent LLM key integration"
+
+backend:
+  - task: "Value Number™ S-formula calculation endpoint"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added /api/calculate/s-formula endpoint with time input validation, S = Z / (Y + V) calculation, and recommendation logic"
+  - task: "Value Number™ W-formula calculation endpoint"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added /api/calculate/w-formula endpoint with cost inputs, W = (Z×M) / (Y×T + V) calculation, and financial recommendation logic"
+  - task: "User authentication system (register/login/JWT)"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added /api/register, /api/login, /api/me endpoints with JWT authentication, bcrypt password hashing, and user management"
+  - task: "Passcode verification endpoint"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added /api/verify-passcode endpoint that validates 'VN-2025-GO' passcode for invitation access"
+  - task: "AI insights integration with Emergent LLM"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high" 
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Integrated emergentintegrations library with gpt-4o-mini model, added generate_ai_insights function, enhanced calculation results with AI-powered recommendations"
 
 frontend:
   - task: "Remove non-functional red VIDEO badges and add YouTube thumbnails"
