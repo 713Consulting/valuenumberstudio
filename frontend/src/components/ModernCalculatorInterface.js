@@ -782,6 +782,19 @@ const ModernCalculatorInterface = ({ user, onShowAuth, onLogout }) => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-gradient-to-br from-slate-900/50 to-purple-900/50 backdrop-blur-xl py-8 relative z-10 border-t border-white/10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Logo713 width="28" height="28" className="drop-shadow-lg" />
+            <p className="text-white/60">
+              © 2025 All rights reserved | 713 Consulting & Development | Keith Bolden
+            </p>
+          </div>
+          <p className="text-white/40">Mathematical Certainty in Every Decision through SCI™</p>
+        </div>
+      </footer>
     </div>
   );
 };
