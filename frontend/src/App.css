@@ -63,6 +63,17 @@
   }
 }
 
+/* Make watermark/brand elements transparent */
+.sci-brand {
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+.sci-brand-text {
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
 /* EXACT Animated Atom Icon from 713Consulting.net */
 .atom-icon {
   width: 20px;
