@@ -45,12 +45,6 @@
   margin-bottom: 2rem;
 }
 
-@keyframes gradientSwirl {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 @keyframes pulsate {
   0%, 100% {
     box-shadow: 0 0 20px rgba(0,255,65,.5);
