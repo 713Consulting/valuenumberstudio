@@ -270,7 +270,7 @@ const ModernCalculatorInterface = ({ user, onShowAuth, onLogout }) => {
                         min="0"
                         max="59"
                         value={sInputs.training_time.minutes}
-                        onChange={(e) => setSInputs({...sInputs, training_time: {...sInputs.training_time, minutes: parseInt(e.target.value) || 0}})}}
+                        onChange={(e) => setSInputs({...sInputs, training_time: {...sInputs.training_time, minutes: parseInt(e.target.value) || 0}})}
                         className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         placeholder="Minutes"
                       />
