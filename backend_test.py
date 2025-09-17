@@ -212,6 +212,299 @@ class SimpleAPITester:
         """Test build download endpoint headers"""
         return self.test_download_headers_only("api/download/build", "Build Download")
 
+    def test_value_number_passcode_verification(self):
+        """Test Value Number™ passcode verification endpoint"""
+        # Test with correct passcode
+        test_data = {"passcode": "VN-2025-GO"}
+        success, response = self.run_test(
+            "Value Number™ Passcode Verification (Correct)",
+            "POST",
+            "api/verify-passcode",
+            200,
+            data=test_data
+        )
+        
+        if success and response.get('valid') is not True:
+            print(f"❌ Expected valid=true for correct passcode, got valid={response.get('valid')}")
+            self.failed_tests.append({
+                'name': 'Passcode Verification - Valid Response',
+                'error': f'Expected valid=true, got valid={response.get("valid")}'
+            })
+            return False
+            
+        # Test with incorrect passcode
+        test_data_wrong = {"passcode": "WRONG-CODE"}
+        success_wrong, response_wrong = self.run_test(
+            "Value Number™ Passcode Verification (Incorrect)",
+            "POST",
+            "api/verify-passcode",
+            200,
+            data=test_data_wrong
+        )
+        
+        if success_wrong and response_wrong.get('valid') is not False:
+            print(f"❌ Expected valid=false for incorrect passcode, got valid={response_wrong.get('valid')}")
+            self.failed_tests.append({
+                'name': 'Passcode Verification - Invalid Response',
+                'error': f'Expected valid=false, got valid={response_wrong.get("valid")}'
+            })
+            return False
+            
+        return success and success_wrong
+
+    def test_user_registration(self):
+        """Test Value Number™ user registration endpoint"""
+        import time
+        timestamp = str(int(time.time()))
+        test_data = {
+            "email": f"testuser{timestamp}@example.com",
+            "password": "testpass123"
+        }
+        
+        success, response = self.run_test(
+            "Value Number™ User Registration",
+            "POST",
+            "api/register",
+            200,
+            data=test_data
+        )
+        
+        if success:
+            # Verify required fields in response
+            required_fields = ['id', 'email', 'created_at', 'is_active']
+            missing_fields = [field for field in required_fields if field not in response]
+            
+            if missing_fields:
+                print(f"❌ Missing required fields: {missing_fields}")
+                self.failed_tests.append({
+                    'name': 'User Registration - Response Fields',
+                    'error': f'Missing fields: {missing_fields}'
+                })
+                return False, None
+                
+            if response.get('email') != test_data['email']:
+                print(f"❌ Email mismatch: expected {test_data['email']}, got {response.get('email')}")
+                self.failed_tests.append({
+                    'name': 'User Registration - Email Match',
+                    'error': f'Email mismatch'
+                })
+                return False, None
+                
+        return success, test_data if success else None
+
+    def test_user_login(self, user_credentials=None):
+        """Test Value Number™ user login endpoint"""
+        if not user_credentials:
+            # Create a test user first
+            success, user_credentials = self.test_user_registration()
+            if not success:
+                print("❌ Cannot test login - user registration failed")
+                return False, None
+        
+        success, response = self.run_test(
+            "Value Number™ User Login",
+            "POST",
+            "api/login",
+            200,
+            data=user_credentials
+        )
+        
+        if success:
+            # Verify required fields in response
+            required_fields = ['access_token', 'token_type', 'user']
+            missing_fields = [field for field in required_fields if field not in response]
+            
+            if missing_fields:
+                print(f"❌ Missing required fields: {missing_fields}")
+                self.failed_tests.append({
+                    'name': 'User Login - Response Fields',
+                    'error': f'Missing fields: {missing_fields}'
+                })
+                return False, None
+                
+            if response.get('token_type') != 'bearer':
+                print(f"❌ Expected token_type=bearer, got {response.get('token_type')}")
+                self.failed_tests.append({
+                    'name': 'User Login - Token Type',
+                    'error': f'Expected bearer token type'
+                })
+                return False, None
+                
+            access_token = response.get('access_token')
+            if not access_token:
+                print(f"❌ No access token received")
+                self.failed_tests.append({
+                    'name': 'User Login - Access Token',
+                    'error': 'No access token in response'
+                })
+                return False, None
+                
+        return success, response.get('access_token') if success else None
+
+    def test_s_formula_calculation(self, access_token=None):
+        """Test Value Number™ S-formula calculation endpoint"""
+        test_data = {
+            "old_time": {"hours": 2, "minutes": 30},
+            "old_effort": 7.0,
+            "training_time": {"hours": 1, "minutes": 0},
+            "new_effort": 4.0
+        }
+        
+        headers = {'Content-Type': 'application/json'}
+        if access_token:
+            headers['Authorization'] = f'Bearer {access_token}'
+        
+        url = f"{self.base_url}/api/calculate/s-formula"
+        self.tests_run += 1
+        print(f"\n🔍 Testing Value Number™ S-Formula Calculation...")
+        print(f"   URL: {url}")
+        
+        try:
+            response = requests.post(url, json=test_data, headers=headers, timeout=10)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                
+                response_data = response.json()
+                print(f"   Response: {json.dumps(response_data, indent=2)}")
+                
+                # Verify required fields
+                required_fields = ['value_number', 'calculation_type', 'recommendation', 'explanation', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in response_data]
+                
+                if missing_fields:
+                    print(f"❌ Missing required fields: {missing_fields}")
+                    self.failed_tests.append({
+                        'name': 'S-Formula Calculation - Response Fields',
+                        'error': f'Missing fields: {missing_fields}'
+                    })
+                    return False
+                
+                if response_data.get('calculation_type') != 's_formula':
+                    print(f"❌ Expected calculation_type=s_formula, got {response_data.get('calculation_type')}")
+                    self.failed_tests.append({
+                        'name': 'S-Formula Calculation - Type',
+                        'error': f'Wrong calculation type'
+                    })
+                    return False
+                
+                # Check for AI insights
+                explanation = response_data.get('explanation', '')
+                if '🤖 AI Insights:' not in explanation:
+                    print(f"❌ AI insights not found in explanation")
+                    self.failed_tests.append({
+                        'name': 'S-Formula Calculation - AI Insights',
+                        'error': 'AI insights prefix not found in explanation'
+                    })
+                    return False
+                else:
+                    print(f"✅ AI insights integration confirmed")
+                
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                print(f"   Response: {response.text[:200]}...")
+                self.failed_tests.append({
+                    'name': 'S-Formula Calculation',
+                    'expected': 200,
+                    'actual': response.status_code,
+                    'response': response.text[:200]
+                })
+
+            return success
+
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.failed_tests.append({
+                'name': 'S-Formula Calculation',
+                'error': str(e)
+            })
+            return False
+
+    def test_w_formula_calculation(self, access_token=None):
+        """Test Value Number™ W-formula calculation endpoint"""
+        test_data = {
+            "old_time": {"hours": 2, "minutes": 30},
+            "old_effort": 7.0,
+            "training_time": {"hours": 1, "minutes": 0},
+            "new_effort": 4.0,
+            "old_cost": 1000.0,
+            "new_cost": 300.0
+        }
+        
+        headers = {'Content-Type': 'application/json'}
+        if access_token:
+            headers['Authorization'] = f'Bearer {access_token}'
+        
+        url = f"{self.base_url}/api/calculate/w-formula"
+        self.tests_run += 1
+        print(f"\n🔍 Testing Value Number™ W-Formula Calculation...")
+        print(f"   URL: {url}")
+        
+        try:
+            response = requests.post(url, json=test_data, headers=headers, timeout=10)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                
+                response_data = response.json()
+                print(f"   Response: {json.dumps(response_data, indent=2)}")
+                
+                # Verify required fields
+                required_fields = ['value_number', 'calculation_type', 'recommendation', 'explanation', 'timestamp']
+                missing_fields = [field for field in required_fields if field not in response_data]
+                
+                if missing_fields:
+                    print(f"❌ Missing required fields: {missing_fields}")
+                    self.failed_tests.append({
+                        'name': 'W-Formula Calculation - Response Fields',
+                        'error': f'Missing fields: {missing_fields}'
+                    })
+                    return False
+                
+                if response_data.get('calculation_type') != 'w_formula':
+                    print(f"❌ Expected calculation_type=w_formula, got {response_data.get('calculation_type')}")
+                    self.failed_tests.append({
+                        'name': 'W-Formula Calculation - Type',
+                        'error': f'Wrong calculation type'
+                    })
+                    return False
+                
+                # Check for AI insights
+                explanation = response_data.get('explanation', '')
+                if '🤖 AI Insights:' not in explanation:
+                    print(f"❌ AI insights not found in explanation")
+                    self.failed_tests.append({
+                        'name': 'W-Formula Calculation - AI Insights',
+                        'error': 'AI insights prefix not found in explanation'
+                    })
+                    return False
+                else:
+                    print(f"✅ AI insights integration confirmed")
+                
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                print(f"   Response: {response.text[:200]}...")
+                self.failed_tests.append({
+                    'name': 'W-Formula Calculation',
+                    'expected': 200,
+                    'actual': response.status_code,
+                    'response': response.text[:200]
+                })
+
+            return success
+
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.failed_tests.append({
+                'name': 'W-Formula Calculation',
+                'error': str(e)
+            })
+            return False
+
 def main():
     print("🚀 Starting 713 Consulting Backend API Tests")
     print("=" * 50)
