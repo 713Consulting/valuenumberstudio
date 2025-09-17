@@ -204,6 +204,13 @@ def calculate_w_formula(inputs: ValueNumberInputW) -> ValueNumberResult:
         recommendation = "no_go"
         explanation = f"With a W value of {w_value:.2f}, this change is not financially advisable. The costs and effort exceed the expected benefits."
     
+    return ValueNumberResult(
+        value_number=round(w_value, 2),
+        calculation_type="w_formula",
+        recommendation=recommendation,
+        explanation=explanation
+    )
+
 # AI Insights function using Emergent LLM
 async def generate_ai_insights(result: ValueNumberResult, inputs: dict) -> str:
     """Generate AI-powered insights and recommendations based on calculation results."""
