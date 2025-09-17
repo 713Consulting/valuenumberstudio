@@ -327,11 +327,17 @@ async def verify_passcode(passcode: str):
     is_valid = passcode.upper() == valid_passcode
     return {"valid": is_valid}
 
-# Value Number™ Calculator Endpoints
+# Value Number™ Calculator Endpoints with AI Insights
 @api_router.post("/calculate/s-formula", response_model=ValueNumberResult)
 async def calculate_s(inputs: ValueNumberInputS, current_user: Optional[User] = Depends(get_current_user)):
     try:
         result = calculate_s_formula(inputs)
+        
+        # Generate AI insights
+        ai_insights = await generate_ai_insights(result, inputs.dict())
+        
+        # Enhance explanation with AI insights
+        result.explanation = f"{result.explanation}\n\n🤖 AI Insights: {ai_insights}"
         
         # Save calculation if user is authenticated
         if current_user:
@@ -340,6 +346,7 @@ async def calculate_s(inputs: ValueNumberInputS, current_user: Optional[User] = 
                 "calculation_type": "s_formula",
                 "inputs": inputs.dict(),
                 "result": result.dict(),
+                "ai_insights": ai_insights,
                 "timestamp": result.timestamp
             }
             await db.calculations.insert_one(calculation_record)
@@ -353,6 +360,12 @@ async def calculate_w(inputs: ValueNumberInputW, current_user: Optional[User] = 
     try:
         result = calculate_w_formula(inputs)
         
+        # Generate AI insights
+        ai_insights = await generate_ai_insights(result, inputs.dict())
+        
+        # Enhance explanation with AI insights
+        result.explanation = f"{result.explanation}\n\n🤖 AI Insights: {ai_insights}"
+        
         # Save calculation if user is authenticated
         if current_user:
             calculation_record = {
@@ -360,6 +373,7 @@ async def calculate_w(inputs: ValueNumberInputW, current_user: Optional[User] = 
                 "calculation_type": "w_formula", 
                 "inputs": inputs.dict(),
                 "result": result.dict(),
+                "ai_insights": ai_insights,
                 "timestamp": result.timestamp
             }
             await db.calculations.insert_one(calculation_record)
