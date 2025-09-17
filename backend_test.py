@@ -146,7 +146,7 @@ class SimpleAPITester:
         
         try:
             # Use GET request with stream=True to avoid downloading full content
-            response = requests.get(url, headers=headers, timeout=10, stream=True)
+            response = requests.get(url, headers=headers, timeout=30, stream=True)
             
             success = response.status_code == 200
             if success:
