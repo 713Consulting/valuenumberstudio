@@ -123,10 +123,7 @@ const ModernCalculatorInterface = ({ user, onShowAuth, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-purple-900 relative">
-      {/* Enhanced Gradient Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black via-slate-900 via-indigo-950 to-purple-900"></div>
-      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-bl from-purple-800/20 via-lavender-500/10 to-transparent"></div>
-      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-blue-900/30 via-marine-600/20 to-transparent"></div>
+      {/* Simple Gradient Background Only - No Squares */}
       
       {/* Navigation Header */}
       <div className="relative z-20 p-4">
