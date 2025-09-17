@@ -20,6 +20,9 @@ from fastapi.responses import FileResponse, JSONResponse
 import tempfile
 import zipfile
 
+# Emergent LLM integration
+from emergentintegrations.llm.chat import LlmChat, UserMessage
+
 # Optional: Google Drive integration
 try:
     from google.oauth2 import service_account
