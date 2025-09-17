@@ -25,13 +25,14 @@
 }
 
 /* EXACT SCI™ Badge Implementation from 713Consulting.net */
+/* Transparent SCI™ Badge - Exact ValueNumber.info Style */
 .sci-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: linear-gradient(45deg, #6B46C1, #9333EA, #E879F9, #EC4899, #06B6D4, #3B82F6);
-  background-size: 400% 400%;
+  background: transparent; /* Completely transparent background */
+  backdrop-filter: none; /* No blur */
   border-radius: 20px;
   border: 2px solid #00FF41;
   box-shadow: 0 0 20px rgba(0,255,65,.5);
@@ -41,7 +42,7 @@
   letter-spacing: 1px;
   color: #fff;
   position: relative;
-  animation: gradientSwirl 3s ease infinite, pulsate 1.5s ease-in-out infinite;
+  animation: pulsate 1.5s ease-in-out infinite;
   margin-bottom: 2rem;
 }
 
