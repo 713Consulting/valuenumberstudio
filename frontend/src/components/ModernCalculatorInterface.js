@@ -562,14 +562,14 @@ const ModernCalculatorInterface = ({ user, onShowAuth, onLogout }) => {
       <div className="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 backdrop-blur-xl py-20 relative z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="mb-8">
-            <div className="cube-container-landing mx-auto mb-6">
-              <div className="cube-landing">
-                <div className="face-landing front">VN</div>
-                <div className="face-landing back">VN</div>
-                <div className="face-landing right">VN</div>
-                <div className="face-landing left">VN</div>
-                <div className="face-landing top">VN</div>
-                <div className="face-landing bottom">VN</div>
+            <div className="vn-logo-3d mx-auto mb-6" aria-hidden="true">
+              <div className="logo-cube">
+                <div className="logo-face">VN</div>
+                <div className="logo-face">VN</div>
+                <div className="logo-face">VN</div>
+                <div className="logo-face">VN</div>
+                <div className="logo-face">VN</div>
+                <div className="logo-face">VN</div>
               </div>
             </div>
           </div>
