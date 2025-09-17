@@ -320,14 +320,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Backend: Test all Value Number™ calculation endpoints (/api/calculate/s-formula, /api/calculate/w-formula)"
-    - "Backend: Test authentication endpoints (/api/register, /api/login, /api/me)"
-    - "Backend: Test passcode verification (/api/verify-passcode) with VN-2025-GO"
-    - "Backend: Test AI insights integration with Emergent LLM"
     - "Frontend: Test Value Number™ application routing and authentication flow"
     - "Frontend: Test calculator interfaces with user authentication"
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
