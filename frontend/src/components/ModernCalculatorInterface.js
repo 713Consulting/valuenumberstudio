@@ -20,6 +20,16 @@ const Logo713 = ({ width = "28", height = "28", className = "" }) => (
 );
 
 const ModernCalculatorInterface = ({ user, onShowAuth, onLogout }) => {
+  const [activeFormula, setActiveFormula] = useState('s');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+
+  // S Formula state
+  const [sInputs, setSInputs] = useState({
+    old_time: { hours: 0, minutes: 0 },
+    old_effort: 5.0,
+    training_time: { hours: 0, minutes: 0 },
     new_effort: 3.0
   });
 
