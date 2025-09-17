@@ -64,14 +64,14 @@ const PasscodeModal = ({ isOpen, onClose, onSuccess }) => {
           
           {/* 3D Rotating Cube Logo */}
           <div className="mx-auto mb-4 flex items-center justify-center">
-            <div className="cube-container">
-              <div className="cube">
-                <div className="face front">VN</div>
-                <div className="face back">VN</div>
-                <div className="face right">VN</div>
-                <div className="face left">VN</div>
-                <div className="face top">VN</div>
-                <div className="face bottom">VN</div>
+            <div className="vn-logo-3d-small" aria-hidden="true">
+              <div className="logo-cube-small">
+                <div className="logo-face-small">VN</div>
+                <div className="logo-face-small">VN</div>
+                <div className="logo-face-small">VN</div>
+                <div className="logo-face-small">VN</div>
+                <div className="logo-face-small">VN</div>
+                <div className="logo-face-small">VN</div>
               </div>
             </div>
           </div>
