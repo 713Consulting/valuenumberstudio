@@ -1,37 +1,29 @@
 import requests
 import sys
-import json
 from datetime import datetime
+import json
 
-class ValueNumberAPITester:
-    def __init__(self, base_url="https://smartchoice-1.preview.emergentagent.com/api"):
+class SimpleAPITester:
+    def __init__(self, base_url="https://sci-powered-site.preview.emergentagent.com"):
         self.base_url = base_url
-        self.token = None
-        self.admin_token = None
-        self.user_id = None
-        self.admin_id = None
         self.tests_run = 0
         self.tests_passed = 0
+        self.failed_tests = []
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None):
         """Run a single API test"""
         url = f"{self.base_url}/{endpoint}"
-        test_headers = {'Content-Type': 'application/json'}
-        
-        if headers:
-            test_headers.update(headers)
-        
+        headers = {'Content-Type': 'application/json'}
+
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
         print(f"   URL: {url}")
         
         try:
             if method == 'GET':
-                response = requests.get(url, headers=test_headers)
+                response = requests.get(url, headers=headers, timeout=10)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=test_headers)
-            elif method == 'PUT':
-                response = requests.put(url, json=data, headers=test_headers)
+                response = requests.post(url, json=data, headers=headers, timeout=10)
 
             success = response.status_code == expected_status
             if success:
@@ -39,356 +31,237 @@ class ValueNumberAPITester:
                 print(f"✅ Passed - Status: {response.status_code}")
                 try:
                     response_data = response.json()
-                    if isinstance(response_data, dict) and len(str(response_data)) < 200:
-                        print(f"   Response: {response_data}")
+                    print(f"   Response: {json.dumps(response_data, indent=2)}")
                 except:
-                    pass
+                    print(f"   Response: {response.text[:200]}...")
             else:
                 print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
-                try:
-                    error_data = response.json()
-                    print(f"   Error: {error_data}")
-                except:
-                    print(f"   Raw response: {response.text[:200]}")
+                print(f"   Response: {response.text[:200]}...")
+                self.failed_tests.append({
+                    'name': name,
+                    'expected': expected_status,
+                    'actual': response.status_code,
+                    'response': response.text[:200]
+                })
 
-            return success, response.json() if response.text else {}
+            return success, response.json() if success and response.headers.get('content-type', '').startswith('application/json') else {}
 
         except Exception as e:
             print(f"❌ Failed - Error: {str(e)}")
+            self.failed_tests.append({
+                'name': name,
+                'error': str(e)
+            })
             return False, {}
 
     def test_root_endpoint(self):
-        """Test API root endpoint"""
+        """Test root API endpoint"""
         success, response = self.run_test(
-            "API Root",
+            "Root API Endpoint",
             "GET",
-            "",
+            "api/",
             200
         )
         return success
 
-    def test_passcode_verification(self):
-        """Test passcode verification"""
-        # Test valid passcode
+    def test_create_status_check(self):
+        """Create a status check"""
+        test_data = {
+            "client_name": f"test_client_{datetime.now().strftime('%H%M%S')}"
+        }
         success, response = self.run_test(
-            "Valid Passcode Verification",
+            "Create Status Check",
             "POST",
-            "verify-passcode?passcode=VN-2025-GO",
+            "api/status",
+            200,
+            data=test_data
+        )
+        return response.get('id') if success else None
+
+    def test_get_status_checks(self):
+        """Get all status checks"""
+        success, response = self.run_test(
+            "Get Status Checks",
+            "GET",
+            "api/status",
             200
         )
-        
-        if success and response.get('valid'):
-            print("   ✅ Valid passcode accepted")
-        else:
-            print("   ❌ Valid passcode rejected")
-            return False
-        
-        # Test invalid passcode
-        success2, response2 = self.run_test(
-            "Invalid Passcode Verification",
-            "POST",
-            "verify-passcode?passcode=INVALID-CODE",
-            200
-        )
-        
-        if success2 and not response2.get('valid'):
-            print("   ✅ Invalid passcode correctly rejected")
-            return True
-        else:
-            print("   ❌ Invalid passcode incorrectly accepted")
-            return False
+        return success
 
-    def test_user_registration(self):
-        """Test user registration with different invitation codes"""
-        timestamp = datetime.now().strftime('%H%M%S')
-        
-        # Test regular user registration
-        user_email = f"testuser_{timestamp}@example.com"
-        success, response = self.run_test(
-            "User Registration (VN-2025-GO)",
-            "POST",
-            "auth/register",
-            200,
-            data={
-                "email": user_email,
-                "password": "TestPass123!",
-                "invitation_code": "VN-2025-GO"
-            }
-        )
-        
-        if success and response.get('access_token'):
-            self.token = response['access_token']
-            self.user_id = response['user']['id']
-            print(f"   ✅ User registered with ID: {self.user_id}")
-        else:
-            print("   ❌ User registration failed")
-            return False
-        
-        # Test admin registration
-        admin_email = f"testadmin_{timestamp}@example.com"
-        success2, response2 = self.run_test(
-            "Admin Registration (VN-ADMIN-2025)",
-            "POST",
-            "auth/register",
-            200,
-            data={
-                "email": admin_email,
-                "password": "AdminPass123!",
-                "invitation_code": "VN-ADMIN-2025"
-            }
-        )
-        
-        if success2 and response2.get('access_token'):
-            self.admin_token = response2['access_token']
-            self.admin_id = response2['user']['id']
-            print(f"   ✅ Admin registered with ID: {self.admin_id}")
-            return True
-        else:
-            print("   ❌ Admin registration failed")
-            return False
-
-    def test_user_login(self):
-        """Test user login"""
-        if not self.user_id:
-            print("❌ Cannot test login - no user registered")
-            return False
-            
-        timestamp = datetime.now().strftime('%H%M%S')
-        user_email = f"testuser_{timestamp}@example.com"
-        
-        success, response = self.run_test(
-            "User Login",
-            "POST",
-            "auth/login",
-            200,
-            data={
-                "email": user_email,
-                "password": "TestPass123!"
-            }
-        )
-        
-        if success and response.get('access_token'):
-            print("   ✅ Login successful")
-            return True
-        else:
-            print("   ❌ Login failed")
-            return False
-
-    def test_user_profile(self):
-        """Test getting user profile"""
-        if not self.token:
-            print("❌ Cannot test profile - no token available")
-            return False
-            
-        success, response = self.run_test(
-            "Get User Profile",
-            "GET",
-            "auth/me",
-            200,
-            headers={'Authorization': f'Bearer {self.token}'}
-        )
-        
-        if success and response.get('id'):
-            print(f"   ✅ Profile retrieved for user: {response.get('email')}")
-            return True
-        else:
-            print("   ❌ Profile retrieval failed")
-            return False
-
-    def test_s_formula_calculation(self):
-        """Test S Formula calculation"""
-        calculation_data = {
-            "old_time": {"hours": 2, "minutes": 30},
-            "old_effort": 8.0,
-            "training_time": {"hours": 1, "minutes": 0},
-            "new_effort": 5.0
+    def test_concepts_access_notification(self):
+        """Test concepts access notification endpoint with review request payload"""
+        test_data = {
+            "fullname": "Test Two",
+            "email": "test2@example.com",
+            "zip": "77019"
         }
-        
-        # Test without authentication (guest)
         success, response = self.run_test(
-            "S Formula Calculation (Guest)",
+            "Concepts Access Notification (Review Request)",
             "POST",
-            "calculate/s-formula",
+            "api/notify/concepts-access",
             200,
-            data=calculation_data
-        )
-        
-        if success and response.get('value_number') is not None:
-            print(f"   ✅ S Formula calculated: VN = {response['value_number']}")
-            print(f"   Recommendation: {response.get('recommendation')}")
-            return True
-        else:
-            print("   ❌ S Formula calculation failed")
-            return False
-
-    def test_w_formula_calculation(self):
-        """Test W Formula calculation"""
-        calculation_data = {
-            "old_time": {"hours": 3, "minutes": 0},
-            "old_effort": 7.0,
-            "training_time": {"hours": 2, "minutes": 0},
-            "new_effort": 4.0,
-            "old_cost": 100.0,
-            "new_cost": 50.0
-        }
-        
-        # Test with authentication
-        headers = {}
-        if self.token:
-            headers['Authorization'] = f'Bearer {self.token}'
-            
-        success, response = self.run_test(
-            "W Formula Calculation (Authenticated)",
-            "POST",
-            "calculate/w-formula",
-            200,
-            data=calculation_data,
-            headers=headers
-        )
-        
-        if success and response.get('value_number') is not None:
-            print(f"   ✅ W Formula calculated: VN = {response['value_number']}")
-            print(f"   Recommendation: {response.get('recommendation')}")
-            return True
-        else:
-            print("   ❌ W Formula calculation failed")
-            return False
-
-    def test_calculation_history(self):
-        """Test getting calculation history"""
-        if not self.token:
-            print("❌ Cannot test history - no token available")
-            return False
-            
-        success, response = self.run_test(
-            "Get Calculation History",
-            "GET",
-            "calculations/history",
-            200,
-            headers={'Authorization': f'Bearer {self.token}'}
+            data=test_data
         )
         
         if success:
-            history_count = len(response) if isinstance(response, list) else 0
-            print(f"   ✅ History retrieved: {history_count} calculations")
-            return True
-        else:
-            print("   ❌ History retrieval failed")
-            return False
-
-    def test_admin_analytics(self):
-        """Test admin analytics endpoint"""
-        if not self.admin_token:
-            print("❌ Cannot test analytics - no admin token available")
-            return False
+            # Verify required fields in response
+            required_fields = ['ok', 'email_sent', 'record_id']
+            missing_fields = [field for field in required_fields if field not in response]
             
-        success, response = self.run_test(
-            "Admin Analytics",
-            "GET",
-            "admin/analytics",
-            200,
-            headers={'Authorization': f'Bearer {self.admin_token}'}
-        )
-        
-        if success and 'totalUsers' in response:
-            print(f"   ✅ Analytics retrieved: {response.get('totalUsers')} users, {response.get('totalCalculations')} calculations")
-            return True
-        else:
-            print("   ❌ Analytics retrieval failed")
-            return False
-
-    def test_admin_users(self):
-        """Test admin users management"""
-        if not self.admin_token:
-            print("❌ Cannot test user management - no admin token available")
-            return False
+            if missing_fields:
+                print(f"❌ Missing required fields: {missing_fields}")
+                self.failed_tests.append({
+                    'name': 'Concepts Access Notification - Response Fields',
+                    'error': f'Missing fields: {missing_fields}'
+                })
+                return False
             
-        success, response = self.run_test(
-            "Admin Get All Users",
-            "GET",
-            "admin/users",
-            200,
-            headers={'Authorization': f'Bearer {self.admin_token}'}
-        )
+            if response.get('ok') is not True:
+                print(f"❌ Expected ok=true, got ok={response.get('ok')}")
+                self.failed_tests.append({
+                    'name': 'Concepts Access Notification - OK Field',
+                    'error': f'Expected ok=true, got ok={response.get("ok")}'
+                })
+                return False
+            
+            # Check if email was sent successfully after SMTP password update
+            email_sent = response.get('email_sent')
+            print(f"✅ All required fields present: ok={response.get('ok')}, email_sent={email_sent}, record_id={response.get('record_id')}")
+            
+            if email_sent is True:
+                print(f"✅ SMTP Configuration Working: Gmail accepted the app password and email was sent successfully")
+            else:
+                print(f"⚠️  Email not sent: email_sent={email_sent}, error={response.get('error')}")
+                
+        return success, response
+
+    def test_download_headers_only(self, endpoint, test_name):
+        """Test download endpoint headers without downloading full content"""
+        url = f"{self.base_url}/{endpoint}"
+        headers = {'Content-Type': 'application/json'}
+
+        self.tests_run += 1
+        print(f"\n🔍 Testing {test_name}...")
+        print(f"   URL: {url}")
         
-        if success and isinstance(response, list):
-            print(f"   ✅ Users list retrieved: {len(response)} users")
-            return True
-        else:
-            print("   ❌ Users list retrieval failed")
+        try:
+            # Use GET request with stream=True to avoid downloading full content
+            response = requests.get(url, headers=headers, timeout=10, stream=True)
+            
+            success = response.status_code == 200
+            if success:
+                self.tests_passed += 1
+                print(f"✅ Passed - Status: {response.status_code}")
+                
+                # Check content-type
+                content_type = response.headers.get('content-type', '')
+                content_length = response.headers.get('content-length', '0')
+                
+                print(f"   Content-Type: {content_type}")
+                print(f"   Content-Length: {content_length}")
+                
+                if 'application/zip' not in content_type:
+                    print(f"❌ Expected content-type to contain 'application/zip', got '{content_type}'")
+                    self.failed_tests.append({
+                        'name': f'{test_name} - Content Type',
+                        'error': f'Expected application/zip, got {content_type}'
+                    })
+                    return False
+                
+                if int(content_length) < 1000:  # Non-trivial content length
+                    print(f"❌ Content length too small: {content_length} bytes")
+                    self.failed_tests.append({
+                        'name': f'{test_name} - Content Length',
+                        'error': f'Content length too small: {content_length} bytes'
+                    })
+                    return False
+                    
+                print(f"✅ Valid ZIP headers confirmed")
+                
+                # Close the response to avoid downloading the full content
+                response.close()
+            else:
+                print(f"❌ Failed - Expected 200, got {response.status_code}")
+                print(f"   Response: {response.text[:200]}...")
+                self.failed_tests.append({
+                    'name': test_name,
+                    'expected': 200,
+                    'actual': response.status_code,
+                    'response': response.text[:200]
+                })
+
+            return success
+
+        except Exception as e:
+            print(f"❌ Failed - Error: {str(e)}")
+            self.failed_tests.append({
+                'name': test_name,
+                'error': str(e)
+            })
             return False
 
-    def test_invitation_request(self):
-        """Test invitation request submission"""
-        request_data = {
-            "name": "Test User",
-            "email": "test@example.com",
-            "organization": "Test Org",
-            "reason": "Testing the invitation system"
-        }
-        
-        success, response = self.run_test(
-            "Submit Invitation Request",
-            "POST",
-            "request-invitation",
-            200,
-            data=request_data
-        )
-        
-        if success and 'message' in response:
-            print("   ✅ Invitation request submitted")
-            return True
-        else:
-            print("   ❌ Invitation request failed")
-            return False
+    def test_all_in_one_download(self):
+        """Test all-in-one download endpoint headers"""
+        return self.test_download_headers_only("api/download/all-in-one", "All-in-One Download")
+
+    def test_source_download(self):
+        """Test source download endpoint headers"""
+        return self.test_download_headers_only("api/download/source", "Source Download")
+
+    def test_build_download(self):
+        """Test build download endpoint headers"""
+        return self.test_download_headers_only("api/download/build", "Build Download")
 
 def main():
-    print("🚀 Starting Value Number™ API Testing")
+    print("🚀 Starting 713 Consulting Backend API Tests")
     print("=" * 50)
     
-    tester = ValueNumberAPITester()
+    # Setup
+    tester = SimpleAPITester()
+
+    # Run tests
+    print("\n📋 Testing Backend API Endpoints...")
     
-    # Test sequence
-    tests = [
-        ("API Root", tester.test_root_endpoint),
-        ("Passcode Verification", tester.test_passcode_verification),
-        ("User Registration", tester.test_user_registration),
-        ("User Login", tester.test_user_login),
-        ("User Profile", tester.test_user_profile),
-        ("S Formula Calculation", tester.test_s_formula_calculation),
-        ("W Formula Calculation", tester.test_w_formula_calculation),
-        ("Calculation History", tester.test_calculation_history),
-        ("Admin Analytics", tester.test_admin_analytics),
-        ("Admin Users", tester.test_admin_users),
-        ("Invitation Request", tester.test_invitation_request),
-    ]
+    # Test root endpoint
+    tester.test_root_endpoint()
     
-    failed_tests = []
+    # Test status check creation
+    status_id = tester.test_create_status_check()
     
-    for test_name, test_func in tests:
-        try:
-            if not test_func():
-                failed_tests.append(test_name)
-        except Exception as e:
-            print(f"❌ {test_name} - Exception: {str(e)}")
-            failed_tests.append(test_name)
+    # Test getting status checks
+    tester.test_get_status_checks()
     
+    # Test specific endpoints from review request
+    print("\n📋 Testing Review Request Endpoints...")
+    
+    # 1. Test concepts access notification with specific payload
+    success, response = tester.test_concepts_access_notification()
+    
+    # Print the full response body as requested
+    if success:
+        print(f"\n📋 Full Response Body for Concepts Access:")
+        print(json.dumps(response, indent=2))
+    
+    # 2. Test all-in-one download
+    tester.test_all_in_one_download()
+    
+    # 3. Test regression - source and build downloads
+    tester.test_source_download()
+    tester.test_build_download()
+
     # Print results
     print("\n" + "=" * 50)
-    print("📊 TEST RESULTS")
-    print("=" * 50)
-    print(f"Tests passed: {tester.tests_passed}/{tester.tests_run}")
+    print(f"📊 Backend Test Results: {tester.tests_passed}/{tester.tests_run} tests passed")
     
-    if failed_tests:
-        print(f"\n❌ Failed tests ({len(failed_tests)}):")
-        for test in failed_tests:
-            print(f"   • {test}")
-    else:
-        print("\n✅ All tests passed!")
+    if tester.failed_tests:
+        print("\n❌ Failed Tests:")
+        for test in tester.failed_tests:
+            if 'error' in test:
+                print(f"   - {test['name']}: {test['error']}")
+            else:
+                print(f"   - {test['name']}: Expected {test.get('expected')}, got {test.get('actual')}")
     
-    print(f"\nSuccess rate: {(tester.tests_passed/tester.tests_run)*100:.1f}%")
-    
-    return 0 if len(failed_tests) == 0 else 1
+    return 0 if tester.tests_passed == tester.tests_run else 1
 
 if __name__ == "__main__":
     sys.exit(main())

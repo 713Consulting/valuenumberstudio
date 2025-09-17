@@ -1,18 +1,30 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Query
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import FastAPI, APIRouter
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, validator
-from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, Field, EmailStr
+from typing import List
 import uuid
-from datetime import datetime, timedelta
-from enum import Enum
-import jwt
-from passlib.context import CryptContext
+from datetime import datetime, timezone
+import smtplib
+from email.message import EmailMessage
+
+from fastapi import BackgroundTasks, HTTPException
+from fastapi.responses import FileResponse, JSONResponse
+import tempfile
+import zipfile
+
+# Optional: Google Drive integration
+try:
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build as gbuild
+    from googleapiclient.http import MediaFileUpload
+    GOOGLE_DRIVE_AVAILABLE = True
+except Exception:
+    GOOGLE_DRIVE_AVAILABLE = False
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -22,477 +34,271 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Security setup
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-security = HTTPBearer()
-SECRET_KEY = os.environ.get('SECRET_KEY', 'value-number-secret-key-change-in-production-2025')
-
 # Create the main app without a prefix
-app = FastAPI(title="Value Number API", version="1.0.0")
+app = FastAPI()
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
-# Enums
-class UserRole(str, Enum):
-    GUEST = "guest"
-    USER = "user"
-    EXECUTIVE = "executive"
-    ADMIN = "admin"
-
-class CalculationType(str, Enum):
-    S_FORMULA = "s_formula"
-    W_FORMULA = "w_formula"
-
-class RecommendationLevel(str, Enum):
-    STRONG_GO = "strong_go"
-    GO = "go"
-    CAUTION = "caution"
-    NO_GO = "no_go"
-
-# Models
-class TimeInput(BaseModel):
-    hours: int = Field(ge=0, le=9999)
-    minutes: int = Field(ge=0, le=59)
-    
-    @validator('hours', 'minutes')
-    def validate_time_input(cls, v):
-        if v < 0:
-            raise ValueError('Time values must be non-negative')
-        return v
-    
-    def to_decimal_hours(self) -> float:
-        return round(self.hours + (self.minutes / 60), 2)
-
-class SFormulaInput(BaseModel):
-    old_time: TimeInput
-    old_effort: float = Field(ge=1, le=10)
-    training_time: TimeInput
-    new_effort: float = Field(ge=1, le=10)
-
-class WFormulaInput(BaseModel):
-    old_time: TimeInput
-    old_effort: float = Field(ge=1, le=10)
-    training_time: TimeInput
-    new_effort: float = Field(ge=1, le=10)
-    old_cost: float = Field(ge=0)
-    new_cost: float = Field(ge=0)
-
-class CalculationResult(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: Optional[str] = None
-    calculation_type: CalculationType
-    inputs: Dict[str, Any]
-    value_number: float
-    recommendation: RecommendationLevel
-    explanation: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Config:
-        use_enum_values = True
-
-class User(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    email: str
-    role: UserRole = UserRole.GUEST
-    is_active: bool = True
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    last_login: Optional[datetime] = None
-
-class UserCreate(BaseModel):
-    email: str
-    password: str
-    invitation_code: Optional[str] = None
-
-class UserLogin(BaseModel):
-    email: str
-    password: str
-
-class InvitationRequest(BaseModel):
-    name: str
-    email: str
-    organization: Optional[str] = None
-    reason: str
-
-class UserRoleUpdate(BaseModel):
-    role: UserRole
-
-# Helper Functions
-def get_recommendation(value_number: float, calculation_type: CalculationType) -> tuple[RecommendationLevel, str]:
-    """Determine recommendation level and explanation based on Value Number"""
-    if calculation_type == CalculationType.S_FORMULA:
-        if value_number >= 2.0:
-            return RecommendationLevel.STRONG_GO, f"Excellent efficiency gain! VN of {value_number:.2f} indicates this change will significantly improve your productivity."
-        elif value_number >= 1.5:
-            return RecommendationLevel.GO, f"Good efficiency improvement. VN of {value_number:.2f} suggests this change is worthwhile."
-        elif value_number >= 1.0:
-            return RecommendationLevel.CAUTION, f"Marginal improvement. VN of {value_number:.2f} means the change may be worth considering, but benefits are limited."
-        else:
-            return RecommendationLevel.NO_GO, f"Not recommended. VN of {value_number:.2f} indicates the current method is more efficient."
-    
-    else:  # W_FORMULA
-        if value_number >= 1.8:
-            return RecommendationLevel.STRONG_GO, f"Excellent ROI! VN of {value_number:.2f} indicates strong financial and efficiency benefits."
-        elif value_number >= 1.3:
-            return RecommendationLevel.GO, f"Good investment. VN of {value_number:.2f} suggests solid returns on this change."
-        elif value_number >= 0.9:
-            return RecommendationLevel.CAUTION, f"Consider carefully. VN of {value_number:.2f} indicates modest benefits - evaluate other factors."
-        else:
-            return RecommendationLevel.NO_GO, f"Not financially viable. VN of {value_number:.2f} suggests the investment doesn't justify the returns."
-
-def calculate_s_formula(inputs: SFormulaInput) -> float:
-    """Calculate S Formula: S = Z / (Y + V)"""
-    Z = inputs.old_time.to_decimal_hours()  # Old time
-    Y = inputs.training_time.to_decimal_hours()  # Training time
-    V = inputs.new_effort  # New effort
-    
-    if Y + V == 0:
-        raise ValueError("Training time plus new effort cannot be zero")
-    
-    return round(Z / (Y + V), 3)
-
-def calculate_w_formula(inputs: WFormulaInput) -> float:
-    """Calculate W Formula: W = (Z×M) / (Y×T + V)"""
-    Z = inputs.old_time.to_decimal_hours()  # Old time
-    M = inputs.old_cost  # Old cost
-    Y = inputs.training_time.to_decimal_hours()  # Training time
-    T = inputs.new_cost  # New cost
-    V = inputs.new_effort  # New effort
-    
-    numerator = Z * M
-    denominator = (Y * T) + V
-    
-    if denominator == 0:
-        raise ValueError("Denominator cannot be zero")
-    
-    return round(numerator / denominator, 3)
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm="HS256")
-    return encoded_jwt
-
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=["HS256"])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-        user = await db.users.find_one({"id": user_id})
-        if user is None:
-            raise HTTPException(status_code=401, detail="User not found")
-        return User(**user)
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-
-async def get_current_user_optional(credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=False))):
-    """Get current user if token is provided, otherwise return None"""
-    if not credentials:
-        return None
-    try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=["HS256"])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            return None
-        user = await db.users.find_one({"id": user_id})
-        if user is None:
-            return None
-        return User(**user)
-    except jwt.PyJWTError:
-        return None
-
-async def get_admin_user(current_user: User = Depends(get_current_user)):
-    """Ensure current user is an admin"""
-    if current_user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return current_user
-
-# Authentication Routes
-@api_router.post("/auth/register")
-async def register(user_data: UserCreate):
-    """Register a new user"""
-    # Check if user already exists
-    existing_user = await db.users.find_one({"email": user_data.email})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    # Verify invitation code if provided
-    role = UserRole.GUEST
-    if user_data.invitation_code:
-        if user_data.invitation_code == "VN-2025-GO":
-            role = UserRole.USER
-        elif user_data.invitation_code == "VN-EXEC-2025":
-            role = UserRole.EXECUTIVE
-        elif user_data.invitation_code == "VN-ADMIN-2025":
-            role = UserRole.ADMIN
-        else:
-            raise HTTPException(status_code=400, detail="Invalid invitation code")
-    
-    # Hash password
-    hashed_password = pwd_context.hash(user_data.password)
-    
-    # Create user
-    user = User(
-        email=user_data.email,
-        role=role,
-        created_at=datetime.utcnow()
-    )
-    
-    user_dict = user.dict()
-    user_dict["hashed_password"] = hashed_password
-    
-    await db.users.insert_one(user_dict)
-    
-    # Create access token
-    access_token_expires = timedelta(days=30)
-    access_token = create_access_token(
-        data={"sub": user.id}, expires_delta=access_token_expires
-    )
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": user
-    }
-
-@api_router.post("/auth/login")
-async def login(user_credentials: UserLogin):
-    """Authenticate user and return token"""
-    user_data = await db.users.find_one({"email": user_credentials.email})
-    if not user_data:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    
-    if not pwd_context.verify(user_credentials.password, user_data["hashed_password"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    
-    if not user_data.get("is_active", True):
-        raise HTTPException(status_code=401, detail="Account is disabled")
-    
-    # Update last login
-    await db.users.update_one(
-        {"id": user_data["id"]},
-        {"$set": {"last_login": datetime.utcnow()}}
-    )
-    
-    # Create access token
-    access_token_expires = timedelta(days=30)
-    access_token = create_access_token(
-        data={"sub": user_data["id"]}, expires_delta=access_token_expires
-    )
-    
-    user = User(**user_data)
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user": user
-    }
-
-@api_router.get("/auth/me", response_model=User)
-async def get_current_user_profile(current_user: User = Depends(get_current_user)):
-    """Get current user profile"""
-    return current_user
-
-# Admin Routes
-@api_router.get("/admin/analytics")
-async def get_analytics(admin_user: User = Depends(get_admin_user)):
-    """Get system analytics"""
-    total_users = await db.users.count_documents({})
-    total_calculations = await db.calculations.count_documents({})
-    
-    # Today's calculations
-    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_calculations = await db.calculations.count_documents({
-        "timestamp": {"$gte": today}
-    })
-    
-    pending_invitations = await db.invitation_requests.count_documents({
-        "status": "pending"
-    })
-    
-    return {
-        "totalUsers": total_users,
-        "totalCalculations": total_calculations,
-        "todayCalculations": today_calculations,
-        "pendingInvitations": pending_invitations
-    }
-
-@api_router.get("/admin/users")
-async def get_all_users(admin_user: User = Depends(get_admin_user)):
-    """Get all users for admin management"""
-    users_cursor = db.users.find({}).sort("created_at", -1)
-    users = await users_cursor.to_list(length=100)
-    
-    return [User(**user) for user in users]
-
-@api_router.put("/admin/users/{user_id}/role")
-async def update_user_role(
-    user_id: str, 
-    role_update: UserRoleUpdate,
-    admin_user: User = Depends(get_admin_user)
-):
-    """Update user role"""
-    result = await db.users.update_one(
-        {"id": user_id},
-        {"$set": {"role": role_update.role.value}}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    return {"message": "User role updated successfully"}
-
-@api_router.get("/admin/calculations")
-async def get_all_calculations(admin_user: User = Depends(get_admin_user)):
-    """Get all calculations for admin analysis"""
-    calculations_cursor = db.calculations.find({}).sort("timestamp", -1)
-    calculations = await calculations_cursor.to_list(length=100)
-    
-    return [CalculationResult(**calc) for calc in calculations]
-
-@api_router.get("/admin/invitation-requests")
-async def get_invitation_requests(admin_user: User = Depends(get_admin_user)):
-    """Get all invitation requests"""
-    requests_cursor = db.invitation_requests.find({}).sort("requested_at", -1)
-    requests = await requests_cursor.to_list(length=50)
-    
-    return requests
-
-@api_router.post("/admin/invitation-requests/{request_id}/approve")
-async def approve_invitation_request(
-    request_id: str,
-    admin_user: User = Depends(get_admin_user)
-):
-    """Approve an invitation request"""
-    result = await db.invitation_requests.update_one(
-        {"id": request_id},
-        {"$set": {"status": "approved", "approved_at": datetime.utcnow()}}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Invitation request not found")
-    
-    return {"message": "Invitation request approved"}
-
-# Routes
-@api_router.get("/")
-async def root():
-    return {"message": "Value Number API v1.0.0", "status": "active"}
-
-@api_router.post("/calculate/s-formula", response_model=CalculationResult)
-async def calculate_s_formula_endpoint(
-    inputs: SFormulaInput,
-    current_user: Optional[User] = Depends(get_current_user_optional)
-):
-    """Calculate S Formula (efficiency without cost bias)"""
-    try:
-        value_number = calculate_s_formula(inputs)
-        recommendation, explanation = get_recommendation(value_number, CalculationType.S_FORMULA)
-        
-        result = CalculationResult(
-            user_id=current_user.id if current_user else None,
-            calculation_type=CalculationType.S_FORMULA,
-            inputs=inputs.dict(),
-            value_number=value_number,
-            recommendation=recommendation,
-            explanation=explanation
-        )
-        
-        # Save to database
-        await db.calculations.insert_one(result.dict())
-        
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Calculation error occurred")
-
-@api_router.post("/calculate/w-formula", response_model=CalculationResult)
-async def calculate_w_formula_endpoint(
-    inputs: WFormulaInput,
-    current_user: Optional[User] = Depends(get_current_user_optional)
-):
-    """Calculate W Formula (includes financial factors)"""
-    try:
-        value_number = calculate_w_formula(inputs)
-        recommendation, explanation = get_recommendation(value_number, CalculationType.W_FORMULA)
-        
-        result = CalculationResult(
-            user_id=current_user.id if current_user else None,
-            calculation_type=CalculationType.W_FORMULA,
-            inputs=inputs.dict(),
-            value_number=value_number,
-            recommendation=recommendation,
-            explanation=explanation
-        )
-        
-        # Save to database
-        await db.calculations.insert_one(result.dict())
-        
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Calculation error occurred")
-
-@api_router.get("/calculations/history")
-async def get_calculation_history(current_user: User = Depends(get_current_user)):
-    """Get user's calculation history"""
-    calculations = await db.calculations.find(
-        {"user_id": current_user.id}
-    ).sort("timestamp", -1).limit(50).to_list(50)
-    
-    return [CalculationResult(**calc) for calc in calculations]
-
-@api_router.post("/request-invitation")
-async def request_invitation(request: InvitationRequest):
-    """Request access invitation"""
-    invitation = {
-        "id": str(uuid.uuid4()),
-        "name": request.name,
-        "email": request.email,
-        "organization": request.organization,
-        "reason": request.reason,
-        "requested_at": datetime.utcnow(),
-        "status": "pending"
-    }
-    
-    await db.invitation_requests.insert_one(invitation)
-    
-    return {"message": "Invitation request submitted successfully. You will be contacted soon."}
-
-@api_router.post("/verify-passcode")
-async def verify_passcode(passcode: str = Query(...)):
-    """Verify invitation passcode"""
-    valid_codes = ["VN-2025-GO"]  # Can be expanded or stored in database
-    
-    if passcode in valid_codes:
-        return {"valid": True, "message": "Access granted"}
-    else:
-        return {"valid": False, "message": "Invalid passcode"}
-
-# Include the router in the main app
-app.include_router(api_router)
-
+# CORS
+cors_origins = os.environ.get('CORS_ORIGINS', '*')
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=[o.strip() for o in cors_origins.split(',')] if cors_origins else ['*'],
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Create a router with the /api prefix
+api_router = APIRouter(prefix="/api")
+
+
+# Define Models
+class StatusCheck(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    client_name: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+class StatusCheckCreate(BaseModel):
+    client_name: str
+
+# Add your routes to the router instead of directly to app
+@api_router.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+@api_router.post("/status", response_model=StatusCheck)
+async def create_status_check(input: StatusCheckCreate):
+    status_dict = input.dict()
+    status_obj = StatusCheck(**status_dict)
+    _ = await db.status_checks.insert_one(status_obj.dict())
+    return status_obj
+
+@api_router.get("/status", response_model=List[StatusCheck])
+async def get_status_checks():
+    status_checks = await db.status_checks.find().to_list(1000)
+    return [StatusCheck(**status_check) for status_check in status_checks]
+
+class ConceptAccessCreate(BaseModel):
+    fullname: str
+    email: EmailStr
+    zip: str
+
+class ConceptAccess(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    fullname: str
+    email: EmailStr
+    zip: str
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+
+def _send_gmail_notification(data: ConceptAccess) -> dict:
+    host = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+    port = int(os.environ.get('SMTP_PORT', '587'))
+    user = os.environ.get('SMTP_USER')
+    password = os.environ.get('SMTP_PASS')
+    to_email = os.environ.get('NOTIFY_TO', '713Consulting@gmail.com')
+    from_email = os.environ.get('FROM_EMAIL', user or 'no-reply@713consulting.net')
+    from_name = os.environ.get('FROM_NAME', '713 Consulting Notifications')
+    reply_to = os.environ.get('REPLY_TO', '713Consulting@gmail.com')
+
+    if not (user and password):
+        raise HTTPException(status_code=500, detail="SMTP_USER/SMTP_PASS not configured on server")
+
+    msg = EmailMessage()
+    msg['Subject'] = f"Concepts Access — {data.fullname}"
+    msg['From'] = f"{from_name} <{from_email}>"
+    msg['To'] = to_email
+    msg['Reply-To'] = reply_to
+    msg.set_content(
+        f"""
+A visitor accessed 713Consulting.net/concepts
+
+Name: {data.fullname}
+Email: {data.email}
+ZIP: {data.zip}
+Time (UTC): {data.timestamp}
+""".strip()
+    )
+
+    sent = False
+    error = None
+    try:
+        with smtplib.SMTP(host, port, timeout=20) as smtp:
+            smtp.starttls()
+            smtp.login(user, password)
+            smtp.send_message(msg)
+            sent = True
+    except Exception as e:
+        error = str(e)
+    return {"sent": sent, "error": error}
+
+
+@api_router.post('/notify/concepts-access')
+async def notify_concepts_access(payload: ConceptAccessCreate):
+    record = ConceptAccess(**payload.dict())
+    # store to mongo (safe even if email fails)
+    await db.concepts_access.insert_one(record.dict())
+    # try email
+    result = _send_gmail_notification(record)
+    return {"ok": True, "email_sent": result.get('sent', False), "error": result.get('error'), "record_id": record.id}
+
+# Utility to zip directories on-demand for reliable downloads
+
+def _zip_directory_to_temp(base_dir: Path, exclude_prefixes=None, zip_name_prefix="archive") -> str:
+    """Create a temporary zip file from base_dir, excluding any path that starts with prefixes.
+    Returns the temp file path.
+    """
+    exclude_prefixes = exclude_prefixes or []
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".zip", prefix=f"{zip_name_prefix}-")
+    tmp_path = tmp.name
+    tmp.close()
+
+    base_dir = Path(base_dir)
+
+    with zipfile.ZipFile(tmp_zip := tmp_path, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(base_dir):
+            rel_root = Path(root)
+            normalized_root = str(rel_root).replace("\\", "/")
+            skip_root = any(normalized_root.startswith(prefix) for prefix in (exclude_prefixes or []))
+            if skip_root:
+                dirs[:] = []
+                continue
+            for f in files:
+                abs_path = Path(root) / f
+                norm_abs = str(abs_path).replace("\\", "/")
+                if any(norm_abs.startswith(prefix) for prefix in (exclude_prefixes or [])):
+                    continue
+                arcname = str(abs_path.relative_to(base_dir))
+                zf.write(str(abs_path), arcname)
+
+    return tmp_zip
+
+
+@api_router.get("/download/source", response_class=FileResponse)
+async def download_source(background_tasks: BackgroundTasks):
+    base_dir = ROOT_DIR.parent  # /app
+    exclude_prefixes = [
+        str((base_dir / "frontend" / "node_modules")).replace("\\", "/"),
+        str((base_dir / "frontend" / "build")).replace("\\", "/"),
+        str((base_dir / ".git")).replace("\\", "/"),
+        str((base_dir / "tests")).replace("\\", "/"),
+        str((base_dir / "scripts")).replace("\\", "/"),
+        str((base_dir / "__pycache__")).replace("\\", "/"),
+    ]
+    try:
+        tmp_zip = _zip_directory_to_temp(base_dir, exclude_prefixes=exclude_prefixes, zip_name_prefix="713-source")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create source archive: {e}")
+
+    filename = "713-consulting-source.zip"
+    background_tasks.add_task(os.remove, tmp_zip)
+    return FileResponse(tmp_zip, media_type="application/zip", filename=filename)
+
+
+@api_router.get("/download/build", response_class=FileResponse)
+async def download_build(background_tasks: BackgroundTasks):
+    base_dir = ROOT_DIR.parent  # /app
+    build_dir = base_dir / "frontend" / "build"
+    if not build_dir.exists() or not any(build_dir.iterdir()):
+        raise HTTPException(status_code=404, detail="Production build not found. Please run yarn build to generate /frontend/build.")
+
+    try:
+        tmp_zip = _zip_directory_to_temp(build_dir, exclude_prefixes=[], zip_name_prefix="713-build")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create build archive: {e}")
+
+    filename = "713-consulting-build.zip"
+    background_tasks.add_task(os.remove, tmp_zip)
+    return FileResponse(tmp_zip, media_type="application/zip", filename=filename)
+
+
+def _drive_service_from_env():
+    if not GOOGLE_DRIVE_AVAILABLE:
+        raise HTTPException(status_code=501, detail="Google Drive client not installed on server")
+    sa_json = os.environ.get("GOOGLE_DRIVE_SA_JSON")
+    folder_id = os.environ.get("GOOGLE_DRIVE_FOLDER_ID")
+    if not sa_json or not folder_id:
+        raise HTTPException(status_code=400, detail="Google Drive not configured. Please provide GOOGLE_DRIVE_SA_JSON and GOOGLE_DRIVE_FOLDER_ID.")
+    try:
+        import json
+        info = json.loads(sa_json)
+        creds = service_account.Credentials.from_service_account_info(info, scopes=["https://www.googleapis.com/auth/drive"])
+        service = gbuild('drive', 'v3', credentials=creds)
+        return service, folder_id
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid Google Drive credentials: {e}")
+
+
+def _drive_upload_file(service, folder_id: str, file_path: str, filename: str):
+    file_metadata = { 'name': filename, 'parents': [folder_id] }
+    media = MediaFileUpload(file_path, mimetype='application/zip', resumable=False)
+    created = service.files().create(body=file_metadata, media_body=media, fields='id, webViewLink, webContentLink').execute()
+    # Make file link-accessible (anyone with link can view)
+    service.permissions().create(fileId=created['id'], body={'type': 'anyone', 'role': 'reader'}).execute()
+    return created
+    media = MediaFileUpload(file_path, mimetype='application/zip', resumable=False)
+    created = service.files().create(body=file_metadata, media_body=media, fields='id, webViewLink, webContentLink').execute()
+    # Make file link-accessible (anyone with link can view)
+    service.permissions().create(fileId=created['id'], body={'type': 'anyone', 'role': 'reader'}).execute()
+    return created
+
+@api_router.get("/download/all-in-one", response_class=FileResponse)
+async def download_all_in_one(background_tasks: BackgroundTasks):
+    base_dir = ROOT_DIR.parent  # /app
+    # Exclude heavy/irrelevant folders, but INCLUDE frontend/build in this archive
+    exclude_prefixes = [
+        str((base_dir / "frontend" / "node_modules")).replace("\\", "/"),
+        str((base_dir / ".git")).replace("\\", "/"),
+        str((base_dir / "__pycache__")).replace("\\", "/"),
+        str((base_dir / "tests")).replace("\\", "/"),
+        str((base_dir / "scripts")).replace("\\", "/"),
+    ]
+    try:
+        tmp_zip = _zip_directory_to_temp(base_dir, exclude_prefixes=exclude_prefixes, zip_name_prefix="713-all")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create all-in-one archive: {e}")
+
+    filename = "713-consulting-all-in-one.zip"
+    background_tasks.add_task(os.remove, tmp_zip)
+    return FileResponse(tmp_zip, media_type="application/zip", filename=filename)
+
+
+@api_router.get("/export/google-drive/source")
+async def export_drive_source(background_tasks: BackgroundTasks):
+    service, folder_id = _drive_service_from_env()
+    base_dir = ROOT_DIR.parent
+    exclude_prefixes = [
+        str((base_dir / "frontend" / "node_modules")).replace("\\", "/"),
+        str((base_dir / "frontend" / "build")).replace("\\", "/"),
+        str((base_dir / ".git")).replace("\\", "/"),
+        str((base_dir / "tests")).replace("\\", "/"),
+        str((base_dir / "scripts")).replace("\\", "/"),
+        str((base_dir / "__pycache__")).replace("\\", "/"),
+    ]
+    tmp_zip = _zip_directory_to_temp(base_dir, exclude_prefixes=exclude_prefixes, zip_name_prefix="713-source")
+    try:
+        created = _drive_upload_file(service, folder_id, tmp_zip, "713-consulting-source.zip")
+        return JSONResponse({"id": created['id'], "webViewLink": created.get('webViewLink'), "webContentLink": created.get('webContentLink')})
+    finally:
+        background_tasks.add_task(os.remove, tmp_zip)
+
+
+@api_router.get("/export/google-drive/build")
+async def export_drive_build(background_tasks: BackgroundTasks):
+    service, folder_id = _drive_service_from_env()
+    base_dir = ROOT_DIR.parent
+    build_dir = base_dir / "frontend" / "build"
+    if not build_dir.exists() or not any(build_dir.iterdir()):
+        raise HTTPException(status_code=404, detail="Production build not found. Please run yarn build to generate /frontend/build.")
+    tmp_zip = _zip_directory_to_temp(build_dir, exclude_prefixes=[], zip_name_prefix="713-build")
+    try:
+        created = _drive_upload_file(service, folder_id, tmp_zip, "713-consulting-build.zip")
+        return JSONResponse({"id": created['id'], "webViewLink": created.get('webViewLink'), "webContentLink": created.get('webContentLink')})
+    finally:
+        background_tasks.add_task(os.remove, tmp_zip)
+
+# Include the router in the main app (after all routes are defined)
+app.include_router(api_router)
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
