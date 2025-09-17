@@ -82,3 +82,7 @@ valuenumber-app.zip
 valuenumber-app/node_modules/@next/swc-win32-x64-msvc/next-swc.win32-x64-msvc.node
 valuenumber-source.zip
 valuenumber-extracted/valuenumber-app/node_modules/@next/swc-win32-x64-msvc/next-swc.win32-x64-msvc.node
+-e 
+# Environment files
+*.env
+*.env.*
