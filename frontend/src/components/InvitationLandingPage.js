@@ -37,18 +37,23 @@ const InvitationLandingPage = ({ onSuccess, onShowAuth }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-indigo-950 to-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full text-center">
-        {/* EXACT Animated SCI™ Banner with Enhanced Effects */}
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-purple-900 flex items-center justify-center p-4 relative">
+      {/* Enhanced Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black via-slate-900 via-indigo-950 to-purple-900"></div>
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-bl from-purple-800/20 via-lavender-500/10 to-transparent"></div>
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-blue-900/30 via-marine-600/20 to-transparent"></div>
+      
+      <div className="max-w-md w-full text-center relative z-10">
+        {/* EXACT Animated SCI™ Banner from 713Consulting.net */}
         <div className="mb-8 flex justify-center">
           <div className="sci-badge">
             <div className="atom-icon">
               <div className="atom-nucleus"></div>
               <div className="atom-orbit"><div className="atom-electron"></div></div>
-              <div className="atom-orbit"><div className="atom-electron"></div></div>
+              <div className="atom-orbit"><div class="atom-electron"></div></div>
               <div className="atom-orbit"><div className="atom-electron"></div></div>
             </div>
-            <span>SCI™ POWERED by Emergent Solutions</span>
+            <span>SCI™ POWERED by Emergent</span>
           </div>
         </div>
 

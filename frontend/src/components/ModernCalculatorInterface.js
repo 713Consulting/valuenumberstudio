@@ -107,11 +107,16 @@ const ModernCalculatorInterface = ({ user }) => {
   }, [activeFormula]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-900 to-purple-900 relative">
+      {/* Enhanced Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black via-slate-900 via-indigo-950 to-purple-900"></div>
+      <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-bl from-purple-800/20 via-lavender-500/10 to-transparent"></div>
+      <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-blue-900/30 via-marine-600/20 to-transparent"></div>
+      
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 z-10">
           {/* 3D Rotating Cube */}
           <div className="flex justify-center mb-8">
             <div className="cube-container-landing">
@@ -148,7 +153,7 @@ const ModernCalculatorInterface = ({ user }) => {
       </div>
 
       {/* Calculator Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* S Formula Card */}
           <div className={`relative group transition-all duration-500 ${activeFormula === 's' ? 'scale-105 z-10' : 'scale-100'}`}>
@@ -265,7 +270,7 @@ const ModernCalculatorInterface = ({ user }) => {
                         min="0"
                         max="59"
                         value={sInputs.training_time.minutes}
-                        onChange={(e) => setSInputs({...sInputs, training_time: {...sInputs.training_time, minutes: parseInt(e.target.value) || 0}})}
+                        onChange={(e) => setSInputs({...sInputs, training_time: {...sInputs.training_time, minutes: parseInt e.target.value) || 0}})}
                         className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         placeholder="Minutes"
                       />
@@ -315,7 +320,7 @@ const ModernCalculatorInterface = ({ user }) => {
             </div>
           </div>
 
-          {/* W Formula Card */}
+          {/* W Formula Card - Similar structure but with cost inputs */}
           <div className={`relative group transition-all duration-500 ${activeFormula === 'w' ? 'scale-105 z-10' : 'scale-100'}`}>
             <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-pink-600/20 to-blue-600/20 rounded-2xl blur-xl opacity-25 group-hover:opacity-40 transition-opacity duration-500"></div>
             <div className="relative bg-gradient-to-br from-purple-600/10 via-pink-600/10 to-blue-600/10 backdrop-blur-xl rounded-2xl p-8 hover:from-purple-600/15 hover:via-pink-600/15 hover:to-blue-600/15 transition-all duration-300">
@@ -502,7 +507,7 @@ const ModernCalculatorInterface = ({ user }) => {
       </div>
 
       {/* Support the Mission Section */}
-      <div className="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 backdrop-blur-xl py-20">
+      <div className="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 backdrop-blur-xl py-20 relative z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="mb-8">
             <div className="cube-container-landing mx-auto mb-6">
@@ -558,7 +563,7 @@ const ModernCalculatorInterface = ({ user }) => {
       </div>
 
       {/* Testimonials Section */}
-      <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 backdrop-blur-xl py-20">
+      <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 backdrop-blur-xl py-20 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-6">
@@ -632,7 +637,7 @@ const ModernCalculatorInterface = ({ user }) => {
       </div>
 
       {/* Legal Section */}
-      <div className="bg-gradient-to-br from-slate-900/50 to-purple-900/50 backdrop-blur-xl py-20">
+      <div className="bg-gradient-to-br from-slate-900/50 to-purple-900/50 backdrop-blur-xl py-20 relative z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-6">
@@ -673,7 +678,7 @@ const ModernCalculatorInterface = ({ user }) => {
       </div>
 
       {/* Privacy Policy Section */}
-      <div className="bg-gradient-to-br from-purple-900/50 to-slate-900/50 backdrop-blur-xl py-20">
+      <div className="bg-gradient-to-br from-purple-900/50 to-slate-900/50 backdrop-blur-xl py-20 relative z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent mb-6">
