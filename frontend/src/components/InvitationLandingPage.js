@@ -47,7 +47,7 @@ const InvitationLandingPage = ({ onSuccess, onShowAuth }) => {
             <div className="atom-icon">
               <div className="atom-nucleus"></div>
               <div className="atom-orbit"><div className="atom-electron"></div></div>
-              <div className="atom-orbit"><div class="atom-electron"></div></div>
+              <div className="atom-orbit"><div className="atom-electron"></div></div>
               <div className="atom-orbit"><div className="atom-electron"></div></div>
             </div>
             <span>SCI™ POWERED by Emergent</span>
