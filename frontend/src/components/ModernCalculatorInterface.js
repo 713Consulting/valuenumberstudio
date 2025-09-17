@@ -18,16 +18,8 @@ const Logo713 = ({ width = "28", height = "28", className = "" }) => (
     <rect x="32.5" y="45" width="35" height="35" rx="5" fill="url(#logoGradient713)" />
   </svg>
 );
-  const [activeFormula, setActiveFormula] = useState('s');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState('');
 
-  // S Formula state
-  const [sInputs, setSInputs] = useState({
-    old_time: { hours: 0, minutes: 0 },
-    old_effort: 5.0,
-    training_time: { hours: 0, minutes: 0 },
+const ModernCalculatorInterface = ({ user, onShowAuth, onLogout }) => {
     new_effort: 3.0
   });
 
