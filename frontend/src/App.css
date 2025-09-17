@@ -167,9 +167,9 @@
 }
 
 /* 3D Rotating Cube for Landing Page */
-/* PERFECT PHYSICAL 3D CUBE - SEAMLESS FACES */
+/* PERFECTLY REALISTIC 3D CUBE - FINAL POLISH */
 .cube-container-landing {
-  perspective: 1200px;
+  perspective: 1000px;
   width: 120px;
   height: 120px;
   margin: 0 auto;
@@ -181,11 +181,9 @@
   width: 120px;
   height: 120px;
   transform-style: preserve-3d;
-  animation: rotateCubeLanding 12s infinite linear;
-  transform-origin: 50% 50% 0;
+  animation: rotateCubeLanding 10s infinite linear;
+  transform-origin: center center;
   will-change: transform;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
 }
 
 .face-landing {
@@ -199,21 +197,17 @@
   font-weight: 900;
   color: white;
   text-shadow: 
-    0 0 7px rgba(255,255,255,0.6),
-    0 0 14px rgba(255,255,255,0.4),
-    0 0 21px rgba(255,255,255,0.3);
-  border-radius: 0px;
+    0 0 8px rgba(255,255,255,0.7),
+    0 0 16px rgba(255,255,255,0.5);
   border: none;
   outline: none;
   backface-visibility: hidden;
-  overflow: hidden;
-  box-shadow: none;
   transform-style: preserve-3d;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Perfect face positioning - no gaps or overlaps */
+/* Seamless face positioning for perfect cube geometry */
 .face-landing.front {
   background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #ec4899 100%);
   transform: rotateY(0deg) translateZ(60px);
@@ -244,18 +238,18 @@
   transform: rotateX(-90deg) translateZ(60px);
 }
 
-/* Smooth rotation with subtle tilt - realistic physics */
+/* Smooth realistic rotation with natural physics */
 @keyframes rotateCubeLanding {
-  0% { transform: rotateX(5deg) rotateY(0deg) rotateZ(0deg); }
-  25% { transform: rotateX(10deg) rotateY(90deg) rotateZ(2deg); }
-  50% { transform: rotateX(5deg) rotateY(180deg) rotateZ(0deg); }
-  75% { transform: rotateX(15deg) rotateY(270deg) rotateZ(-2deg); }
-  100% { transform: rotateX(5deg) rotateY(360deg) rotateZ(0deg); }
+  0% { transform: rotateX(10deg) rotateY(0deg) rotateZ(1deg); }
+  25% { transform: rotateX(8deg) rotateY(90deg) rotateZ(-1deg); }
+  50% { transform: rotateX(12deg) rotateY(180deg) rotateZ(1deg); }
+  75% { transform: rotateX(9deg) rotateY(270deg) rotateZ(-1deg); }
+  100% { transform: rotateX(10deg) rotateY(360deg) rotateZ(1deg); }
 }
 
-/* PERFECT PHYSICAL 3D CUBE - MODAL VERSION */
+/* PERFECTLY REALISTIC 3D CUBE - MODAL VERSION */
 .cube-container {
-  perspective: 1000px;
+  perspective: 800px;
   width: 80px;
   height: 80px;
   margin: 0 auto;
@@ -268,10 +262,8 @@
   height: 80px;
   transform-style: preserve-3d;
   animation: rotateCube 8s infinite linear;
-  transform-origin: 50% 50% 0;
+  transform-origin: center center;
   will-change: transform;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
 }
 
 .face {
@@ -285,14 +277,11 @@
   font-weight: 900;
   color: white;
   text-shadow: 
-    0 0 5px rgba(255,255,255,0.6),
-    0 0 10px rgba(255,255,255,0.4);
-  border-radius: 0px;
+    0 0 6px rgba(255,255,255,0.7),
+    0 0 12px rgba(255,255,255,0.5);
   border: none;
   outline: none;
   backface-visibility: hidden;
-  overflow: hidden;
-  box-shadow: none;
   transform-style: preserve-3d;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -329,11 +318,11 @@
 }
 
 @keyframes rotateCube {
-  0% { transform: rotateX(5deg) rotateY(0deg) rotateZ(0deg); }
-  25% { transform: rotateX(10deg) rotateY(90deg) rotateZ(2deg); }
-  50% { transform: rotateX(5deg) rotateY(180deg) rotateZ(0deg); }
-  75% { transform: rotateX(15deg) rotateY(270deg) rotateZ(-2deg); }
-  100% { transform: rotateX(5deg) rotateY(360deg) rotateZ(0deg); }
+  0% { transform: rotateX(10deg) rotateY(0deg) rotateZ(1deg); }
+  25% { transform: rotateX(8deg) rotateY(90deg) rotateZ(-1deg); }
+  50% { transform: rotateX(12deg) rotateY(180deg) rotateZ(1deg); }
+  75% { transform: rotateX(9deg) rotateY(270deg) rotateZ(-1deg); }
+  100% { transform: rotateX(10deg) rotateY(360deg) rotateZ(1deg); }
 }
 
 /* Cube hover effect */
