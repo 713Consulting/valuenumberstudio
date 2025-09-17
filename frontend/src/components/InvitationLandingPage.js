@@ -143,8 +143,9 @@ const InvitationLandingPage = ({ onSuccess, onShowAuth }) => {
 
         {/* Footer */}
         <div className="mt-12 text-gray-500 text-sm flex items-center justify-center gap-2">
+          <span>© 2025 All rights reserved | </span>
           <Logo713 width="20" height="20" className="drop-shadow-lg" />
-          <span>© 2025 All rights reserved | 713 Consulting & Development</span>
+          <span>713 Consulting & Development</span>
         </div>
       </div>
     </div>
