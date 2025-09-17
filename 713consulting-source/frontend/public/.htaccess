@@ -1,0 +1,13 @@
+# SPA fallback for React on Apache (IONOS)
+# Serve index.html for all routes except existing files/directories
+Options -MultiViews
+RewriteEngine On
+RewriteBase /
+
+# If a real file or directory exists, serve it directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Otherwise, fallback to index.html
+RewriteRule . /index.html [L]
