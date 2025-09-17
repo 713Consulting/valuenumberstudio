@@ -506,14 +506,14 @@ class SimpleAPITester:
             return False
 
 def main():
-    print("🚀 Starting 713 Consulting Backend API Tests")
+    print("🚀 Starting Value Number™ Backend API Tests")
     print("=" * 50)
     
     # Setup
     tester = SimpleAPITester()
 
     # Run tests
-    print("\n📋 Testing Backend API Endpoints...")
+    print("\n📋 Testing Core Backend API Endpoints...")
     
     # Test root endpoint
     tester.test_root_endpoint()
@@ -542,6 +542,28 @@ def main():
     tester.test_source_download()
     tester.test_build_download()
 
+    # Value Number™ Specific Tests
+    print("\n📋 Testing Value Number™ Endpoints...")
+    
+    # 1. Test passcode verification
+    tester.test_value_number_passcode_verification()
+    
+    # 2. Test user registration and login flow
+    success, user_credentials = tester.test_user_registration()
+    access_token = None
+    if success:
+        success_login, access_token = tester.test_user_login(user_credentials)
+    
+    # 3. Test S-formula calculation (with and without authentication)
+    tester.test_s_formula_calculation()  # Without auth
+    if access_token:
+        tester.test_s_formula_calculation(access_token)  # With auth
+    
+    # 4. Test W-formula calculation (with and without authentication)  
+    tester.test_w_formula_calculation()  # Without auth
+    if access_token:
+        tester.test_w_formula_calculation(access_token)  # With auth
+
     # Print results
     print("\n" + "=" * 50)
     print(f"📊 Backend Test Results: {tester.tests_passed}/{tester.tests_run} tests passed")
@@ -553,6 +575,8 @@ def main():
                 print(f"   - {test['name']}: {test['error']}")
             else:
                 print(f"   - {test['name']}: Expected {test.get('expected')}, got {test.get('actual')}")
+    else:
+        print("\n✅ All tests passed!")
     
     return 0 if tester.tests_passed == tester.tests_run else 1
 
