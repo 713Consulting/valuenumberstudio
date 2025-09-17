@@ -218,10 +218,103 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
+# Value Number™ Authentication Endpoints
+@api_router.post("/register", response_model=UserResponse)
+async def register_user(user_data: UserCreate):
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
+    user = User(
+        email=user_data.email,
+        password_hash=hash_password(user_data.password)
+    )
+    
+    # Save to database
+    await db.users.insert_one(user.dict())
+    
+    return UserResponse(**user.dict())
+
+@api_router.post("/login")
+async def login_user(login_data: UserLogin):
+    # Find user by email
+    user_data = await db.users.find_one({"email": login_data.email})
+    if not user_data:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    user = User(**user_data)
+    
+    # Verify password
+    if not verify_password(login_data.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    if not user.is_active:
+        raise HTTPException(status_code=401, detail="Account is disabled")
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": user.id})
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": UserResponse(**user.dict())
+    }
+
+@api_router.get("/me", response_model=UserResponse)
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return UserResponse(**current_user.dict())
+
+# Value Number™ Passcode Verification
+@api_router.post("/verify-passcode")
+async def verify_passcode(passcode: str):
+    valid_passcode = "VN-2025-GO"
+    is_valid = passcode.upper() == valid_passcode
+    return {"valid": is_valid}
+
+# Value Number™ Calculator Endpoints
+@api_router.post("/calculate/s-formula", response_model=ValueNumberResult)
+async def calculate_s(inputs: ValueNumberInputS, current_user: Optional[User] = Depends(get_current_user)):
+    try:
+        result = calculate_s_formula(inputs)
+        
+        # Save calculation if user is authenticated
+        if current_user:
+            calculation_record = {
+                "user_id": current_user.id,
+                "calculation_type": "s_formula",
+                "inputs": inputs.dict(),
+                "result": result.dict(),
+                "timestamp": result.timestamp
+            }
+            await db.calculations.insert_one(calculation_record)
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/calculate/w-formula", response_model=ValueNumberResult)
+async def calculate_w(inputs: ValueNumberInputW, current_user: Optional[User] = Depends(get_current_user)):
+    try:
+        result = calculate_w_formula(inputs)
+        
+        # Save calculation if user is authenticated
+        if current_user:
+            calculation_record = {
+                "user_id": current_user.id,
+                "calculation_type": "w_formula", 
+                "inputs": inputs.dict(),
+                "result": result.dict(),
+                "timestamp": result.timestamp
+            }
+            await db.calculations.insert_one(calculation_record)
+        
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
