@@ -786,7 +786,7 @@ const ModernCalculatorInterface = ({ user, onShowAuth, onLogout }) => {
           <div className="flex items-center justify-center gap-2 mb-4">
             <Logo713 width="28" height="28" className="drop-shadow-lg" />
             <p className="text-white/60">
-              © 2025 All rights reserved | 713 Consulting & Development | Keith Bolden
+              © 2025 All rights reserved | 713 Consulting & Development
             </p>
           </div>
           <p className="text-white/40">Mathematical Certainty in Every Decision through SCI™</p>
