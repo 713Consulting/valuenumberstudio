@@ -218,6 +218,11 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+# Add your routes to the router instead of directly to app
+@api_router.get("/")
+async def root():
+    return {"message": "Value Number™ API - Mathematical Certainty in Every Decision"}
+
 # Value Number™ Authentication Endpoints
 @api_router.post("/register", response_model=UserResponse)
 async def register_user(user_data: UserCreate):
