@@ -204,12 +204,56 @@ def calculate_w_formula(inputs: ValueNumberInputW) -> ValueNumberResult:
         recommendation = "no_go"
         explanation = f"With a W value of {w_value:.2f}, this change is not financially advisable. The costs and effort exceed the expected benefits."
     
-    return ValueNumberResult(
-        value_number=round(w_value, 2),
-        calculation_type="w_formula", 
-        recommendation=recommendation,
-        explanation=explanation
-    )
+# AI Insights function using Emergent LLM
+async def generate_ai_insights(result: ValueNumberResult, inputs: dict) -> str:
+    """Generate AI-powered insights and recommendations based on calculation results."""
+    try:
+        # Initialize LLM chat with Emergent key
+        emergent_key = os.environ.get('EMERGENT_LLM_KEY')
+        if not emergent_key:
+            return "AI insights unavailable - API key not configured."
+        
+        chat = LlmChat(
+            api_key=emergent_key,
+            session_id=f"vn-insights-{uuid.uuid4()}",
+            system_message="""You are an expert decision-making advisor for the Value Number™ system. 
+            Your role is to provide insightful, actionable recommendations based on calculation results.
+            Keep responses concise (2-3 sentences), professional, and focused on practical next steps.
+            Always maintain the SCI™ Standard of integrity and mathematical precision."""
+        ).with_model("openai", "gpt-4o-mini")
+        
+        # Create contextual prompt based on formula type
+        if result.calculation_type == "s_formula":
+            prompt = f"""Based on this S Formula calculation:
+            - Value Number: {result.value_number}
+            - Recommendation: {result.recommendation}
+            - Old Time: {inputs.get('old_time', {}).get('hours', 0)}h {inputs.get('old_time', {}).get('minutes', 0)}m
+            - Training Time: {inputs.get('training_time', {}).get('hours', 0)}h {inputs.get('training_time', {}).get('minutes', 0)}m
+            - Old Effort: {inputs.get('old_effort', 0)}/10
+            - New Effort: {inputs.get('new_effort', 0)}/10
+            
+            Provide specific insights and next steps for this decision scenario."""
+        else:
+            prompt = f"""Based on this W Formula calculation:
+            - Value Number: {result.value_number}
+            - Recommendation: {result.recommendation}
+            - Old Time: {inputs.get('old_time', {}).get('hours', 0)}h {inputs.get('old_time', {}).get('minutes', 0)}m
+            - Training Time: {inputs.get('training_time', {}).get('hours', 0)}h {inputs.get('training_time', {}).get('minutes', 0)}m  
+            - Old Cost: ${inputs.get('old_cost', 0)}
+            - New Cost: ${inputs.get('new_cost', 0)}
+            - Old Effort: {inputs.get('old_effort', 0)}/10
+            - New Effort: {inputs.get('new_effort', 0)}/10
+            
+            Provide specific financial insights and strategic recommendations for this investment decision."""
+        
+        user_message = UserMessage(text=prompt)
+        response = await chat.send_message(user_message)
+        
+        return response
+        
+    except Exception as e:
+        logging.error(f"AI insights generation failed: {str(e)}")
+        return "AI insights temporarily unavailable. The mathematical analysis above provides reliable guidance for your decision."
 
 
 # Define Models
