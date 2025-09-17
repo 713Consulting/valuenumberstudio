@@ -71,14 +71,14 @@ const InvitationLandingPage = ({ onSuccess, onShowAuth }) => {
 
         {/* 3D Rotating Cube */}
         <div className="mb-8">
-          <div className="cube-container-landing">
-            <div className="cube-landing">
-              <div className="face-landing front">VN</div>
-              <div className="face-landing back">VN</div>
-              <div className="face-landing right">VN</div>
-              <div className="face-landing left">VN</div>
-              <div className="face-landing top">VN</div>
-              <div className="face-landing bottom">VN</div>
+          <div className="vn-logo-3d" aria-hidden="true">
+            <div className="logo-cube">
+              <div className="logo-face">VN</div>
+              <div className="logo-face">VN</div>
+              <div className="logo-face">VN</div>
+              <div className="logo-face">VN</div>
+              <div className="logo-face">VN</div>
+              <div className="logo-face">VN</div>
             </div>
           </div>
         </div>
