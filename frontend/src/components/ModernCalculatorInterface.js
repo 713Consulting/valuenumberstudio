@@ -4,7 +4,7 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const ModernCalculatorInterface = ({ user }) => {
+const ModernCalculatorInterface = ({ user, onShowAuth, onLogout }) => {
   const [activeFormula, setActiveFormula] = useState('s');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
