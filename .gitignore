@@ -86,3 +86,7 @@ valuenumber-extracted/valuenumber-app/node_modules/@next/swc-win32-x64-msvc/next
 # Environment files
 *.env
 *.env.*
+-e 
+# Environment files
+*.env
+*.env.*
