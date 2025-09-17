@@ -4,7 +4,20 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const ModernCalculatorInterface = ({ user, onShowAuth, onLogout }) => {
+const Logo713 = ({ width = "28", height = "28", className = "" }) => (
+  <svg width={width} height={height} viewBox="0 0 100 100" className={className}>
+    <defs>
+      <linearGradient id="logoGradient713" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#00d4ff" />
+        <stop offset="50%" stopColor="#7b64ff" />
+        <stop offset="100%" stopColor="#ff6b6b" />
+      </linearGradient>
+    </defs>
+    <rect x="10" y="10" width="35" height="80" rx="5" fill="url(#logoGradient713)" />
+    <rect x="55" y="25" width="35" height="65" rx="5" fill="url(#logoGradient713)" opacity="0.8" />
+    <rect x="32.5" y="45" width="35" height="35" rx="5" fill="url(#logoGradient713)" />
+  </svg>
+);
   const [activeFormula, setActiveFormula] = useState('s');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
