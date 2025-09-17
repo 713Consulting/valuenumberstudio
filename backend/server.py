@@ -53,6 +53,161 @@ app.add_middleware(
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Security
+security = HTTPBearer(auto_error=False)
+
+# Value Number™ Models
+class TimeInput(BaseModel):
+    hours: int = Field(ge=0, le=9999)
+    minutes: int = Field(ge=0, le=59)
+
+class ValueNumberInputS(BaseModel):
+    old_time: TimeInput
+    old_effort: float = Field(ge=1.0, le=10.0)
+    training_time: TimeInput
+    new_effort: float = Field(ge=1.0, le=10.0)
+
+class ValueNumberInputW(BaseModel):
+    old_time: TimeInput
+    old_effort: float = Field(ge=1.0, le=10.0)
+    training_time: TimeInput
+    new_effort: float = Field(ge=1.0, le=10.0)
+    old_cost: float = Field(ge=0)
+    new_cost: float = Field(ge=0)
+
+class ValueNumberResult(BaseModel):
+    value_number: float
+    calculation_type: str
+    recommendation: str
+    explanation: str
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: EmailStr
+    password_hash: str
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    is_active: bool = True
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserResponse(BaseModel):
+    id: str
+    email: EmailStr
+    created_at: str
+    is_active: bool
+
+# Authentication functions
+JWT_SECRET = os.environ.get('JWT_SECRET_KEY', 'fallback-secret-key-change-in-production')
+JWT_ALGORITHM = 'HS256'
+JWT_EXPIRATION_HOURS = 24
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+def create_access_token(data: dict) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Optional[User]:
+    if not credentials:
+        return None
+    
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            return None
+    except jwt.PyJWTError:
+        return None
+    
+    user_data = await db.users.find_one({"id": user_id})
+    if user_data is None:
+        return None
+    
+    return User(**user_data)
+
+# Value Number™ calculation functions
+def convert_time_to_minutes(time_input: TimeInput) -> float:
+    return time_input.hours * 60 + time_input.minutes
+
+def calculate_s_formula(inputs: ValueNumberInputS) -> ValueNumberResult:
+    # S = Z / (Y + V)
+    Z = convert_time_to_minutes(inputs.old_time)  # Old time in minutes
+    Y = convert_time_to_minutes(inputs.training_time)  # Training time in minutes  
+    V = inputs.new_effort  # New effort
+    
+    if Y + V == 0:
+        raise HTTPException(status_code=400, detail="Training time plus new effort cannot be zero")
+    
+    s_value = Z / (Y + V)
+    
+    # Determine recommendation based on S value
+    if s_value >= 1.5:
+        recommendation = "strong_go"
+        explanation = f"With an S value of {s_value:.2f}, this change offers excellent value. The time saved ({Z} minutes) significantly outweighs the training time ({Y} minutes) and new effort level ({V}/10)."
+    elif s_value >= 1.0:
+        recommendation = "go"  
+        explanation = f"With an S value of {s_value:.2f}, this change is recommended. The benefits justify the investment in training and effort adjustment."
+    elif s_value >= 0.7:
+        recommendation = "caution"
+        explanation = f"With an S value of {s_value:.2f}, proceed with caution. The benefits are marginal compared to the training time and effort required."
+    else:
+        recommendation = "no_go"
+        explanation = f"With an S value of {s_value:.2f}, this change is not recommended. The training time and effort outweigh the potential time savings."
+    
+    return ValueNumberResult(
+        value_number=round(s_value, 2),
+        calculation_type="s_formula",
+        recommendation=recommendation,
+        explanation=explanation
+    )
+
+def calculate_w_formula(inputs: ValueNumberInputW) -> ValueNumberResult:
+    # W = (Z×M) / (Y×T + V)
+    Z = convert_time_to_minutes(inputs.old_time)  # Old time in minutes
+    M = inputs.old_cost  # Old cost
+    Y = convert_time_to_minutes(inputs.training_time)  # Training time in minutes
+    T = inputs.new_cost  # New cost  
+    V = inputs.new_effort  # New effort
+    
+    if Y * T + V == 0:
+        raise HTTPException(status_code=400, detail="Training time × new cost + new effort cannot be zero")
+    
+    w_value = (Z * M) / (Y * T + V)
+    
+    # Determine recommendation based on W value
+    if w_value >= 1.5:
+        recommendation = "strong_go"
+        explanation = f"With a W value of {w_value:.2f}, this change offers excellent financial value. The cost-benefit analysis strongly favors this decision."
+    elif w_value >= 1.0:
+        recommendation = "go"
+        explanation = f"With a W value of {w_value:.2f}, this change is financially sound. The benefits outweigh the costs and effort required."
+    elif w_value >= 0.7:
+        recommendation = "caution" 
+        explanation = f"With a W value of {w_value:.2f}, proceed with caution. The financial benefits are marginal."
+    else:
+        recommendation = "no_go"
+        explanation = f"With a W value of {w_value:.2f}, this change is not financially advisable. The costs and effort exceed the expected benefits."
+    
+    return ValueNumberResult(
+        value_number=round(w_value, 2),
+        calculation_type="w_formula", 
+        recommendation=recommendation,
+        explanation=explanation
+    )
+
 
 # Define Models
 class StatusCheck(BaseModel):
