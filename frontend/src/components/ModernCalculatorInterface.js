@@ -113,6 +113,46 @@ const ModernCalculatorInterface = ({ user, onShowAuth, onLogout }) => {
       <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-bl from-purple-800/20 via-lavender-500/10 to-transparent"></div>
       <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-gradient-to-tr from-blue-900/30 via-marine-600/20 to-transparent"></div>
       
+      {/* Navigation Header */}
+      <div className="relative z-20 p-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            {/* SCI™ Badge */}
+            <div className="sci-badge">
+              <div className="atom-icon">
+                <div className="atom-nucleus"></div>
+                <div className="atom-orbit"><div className="atom-electron"></div></div>
+                <div className="atom-orbit"><div className="atom-electron"></div></div>
+                <div className="atom-orbit"><div className="atom-electron"></div></div>
+              </div>
+              <span>SCI™ POWERED by Emergent</span>
+            </div>
+            <h1 className="text-xl font-bold text-white">Value Number™</h1>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <>
+                <span className="text-white font-medium">{user.email}</span>
+                <button
+                  onClick={onLogout}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={onShowAuth}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Login / Register
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+      
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20"></div>
