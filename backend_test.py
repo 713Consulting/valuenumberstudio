@@ -214,14 +214,12 @@ class SimpleAPITester:
 
     def test_value_number_passcode_verification(self):
         """Test Value Number™ passcode verification endpoint"""
-        # Test with correct passcode
-        test_data = {"passcode": "VN-2025-GO"}
+        # Test with correct passcode - using query parameter format
         success, response = self.run_test(
             "Value Number™ Passcode Verification (Correct)",
             "POST",
-            "api/verify-passcode",
-            200,
-            data=test_data
+            "api/verify-passcode?passcode=VN-2025-GO",
+            200
         )
         
         if success and response.get('valid') is not True:
@@ -233,13 +231,11 @@ class SimpleAPITester:
             return False
             
         # Test with incorrect passcode
-        test_data_wrong = {"passcode": "WRONG-CODE"}
         success_wrong, response_wrong = self.run_test(
             "Value Number™ Passcode Verification (Incorrect)",
             "POST",
-            "api/verify-passcode",
-            200,
-            data=test_data_wrong
+            "api/verify-passcode?passcode=WRONG-CODE",
+            200
         )
         
         if success_wrong and response_wrong.get('valid') is not False:
